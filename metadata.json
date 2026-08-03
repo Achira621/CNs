@@ -1,0 +1,6 @@
+{
+  "name": "Classical Cryptography Masterclass",
+  "description": "Vidyalankar Institute of Technology Cybersecurity Practical suite on Classical Cryptography (Caesar, Multiplicative, Affine Ciphers) by Varad Dalvi, Omkar Bengali, and Sumit Surwase, conducted by Prof. Vinita Bhandiwad.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
