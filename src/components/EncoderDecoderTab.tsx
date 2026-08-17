@@ -176,13 +176,13 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Method Selection Bar */}
       {onCipherMethodChange && (
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-5 shadow-2xl space-y-3">
+        <div className="bg-white border border-zinc-300 rounded-3xl p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono-code uppercase tracking-[0.15em] text-[#FF3E00] font-bold flex items-center gap-2">
               <Sliders className="w-4 h-4" />
               SELECT CIPHER ALGORITHM
             </span>
-            <span className="text-xs font-mono-code text-zinc-400 font-semibold px-3 py-1 bg-[#0A0A0A] border border-[#262626] rounded-full">
+            <span className="text-xs font-mono-code text-zinc-600 font-semibold px-3 py-1 bg-zinc-100 border border-zinc-300 rounded-full">
               {currentMethodInfo.formula}
             </span>
           </div>
@@ -197,22 +197,22 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
                   onClick={() => onCipherMethodChange(methodKey)}
                   className={`p-4 rounded-2xl text-left border transition-all duration-300 relative flex flex-col justify-between hover:scale-[1.02] ${
                     isSelected
-                      ? 'bg-gradient-to-br from-[#1C1C1C] to-[#282828] border-[#FF3E00] shadow-lg shadow-[#FF3E00]/15'
-                      : 'bg-[#0A0A0A] border-[#262626] hover:border-zinc-500'
+                      ? 'bg-black text-white border-black shadow-md'
+                      : 'bg-zinc-50 border-zinc-300 hover:border-zinc-500'
                   }`}
                 >
                   {isSelected && (
                     <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#FF3E00] animate-ping" />
                   )}
                   <div>
-                    <h4 className={`font-serif-display font-semibold text-sm ${isSelected ? 'text-white' : 'text-zinc-300'}`}>
+                    <h4 className={`font-serif-display font-semibold text-sm ${isSelected ? 'text-white' : 'text-black'}`}>
                       {mInfo.name}
                     </h4>
-                    <p className="text-[11px] font-mono-code text-[#FF3E00] font-bold mt-1">
+                    <p className={`text-[11px] font-mono-code font-bold mt-1 ${isSelected ? 'text-amber-400' : 'text-[#FF3E00]'}`}>
                       {mInfo.formula}
                     </p>
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-sans mt-2 line-clamp-2">
+                  <p className={`text-[11px] font-sans mt-2 line-clamp-2 ${isSelected ? 'text-zinc-300' : 'text-zinc-600'}`}>
                     {mInfo.description}
                   </p>
                 </button>
@@ -223,29 +223,36 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       )}
 
       {/* Top Banner & Control Panel */}
-      <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+      <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md relative overflow-hidden space-y-6">
         {/* Accent top gradient line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FF3E00] via-amber-400 to-[#FF3E00]" />
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FF3E00] via-amber-500 to-[#FF3E00]" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-[#262626]">
-          <div>
-            <div className="flex items-center gap-2 text-[#FF3E00] text-[10px] font-mono-code uppercase tracking-[0.2em] font-bold">
-              <Sliders className="w-3.5 h-3.5" />
-              <span>CIPHER PARAMETERS // {currentMethodInfo.name.toUpperCase()}</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-black text-[#FF3E00] flex items-center justify-center font-mono-code font-bold text-lg shadow-sm">
+              🔑
             </div>
-            <h2 className="text-2xl font-serif-display font-semibold text-white mt-1">
-              Key Configuration & Real-Time Encryption
-            </h2>
+            <div>
+              <span className="text-[10px] font-mono-code uppercase tracking-[0.2em] text-[#FF3E00] font-bold block">
+                CRYPTO STUDIO PIPELINE
+              </span>
+              <h2 className="text-xl font-serif-display font-semibold text-black flex items-center gap-2">
+                {currentMethodInfo.name}{' '}
+                <span className="text-xs font-mono-code font-normal text-zinc-500">
+                  (Category: {currentMethodInfo.category.toUpperCase()})
+                </span>
+              </h2>
+            </div>
           </div>
 
-          {/* Mode Switcher */}
-          <div className="flex items-center gap-1 bg-[#0A0A0A] p-1.5 border border-[#2A2A2A] rounded-full self-start md:self-auto shadow-inner">
+          {/* Mode Switcher Buttons */}
+          <div className="flex items-center gap-1 bg-zinc-100 p-1 border border-zinc-200 rounded-full self-start md:self-auto">
             <button
               onClick={() => setMode('encrypt')}
               className={`px-5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 ${
                 mode === 'encrypt'
-                  ? 'bg-[#FF3E00] text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-black text-white shadow-md'
+                  : 'text-zinc-600 hover:text-black'
               }`}
             >
               🔒 Encrypt E(x)
@@ -254,8 +261,8 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
               onClick={() => setMode('decrypt')}
               className={`px-5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 ${
                 mode === 'decrypt'
-                  ? 'bg-[#FF3E00] text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-black text-white shadow-md'
+                  : 'text-zinc-600 hover:text-black'
               }`}
             >
               🔓 Decrypt D(y)
@@ -687,9 +694,9 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       {/* Main Text Input / Output Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Input Text Area */}
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
+        <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-300 flex items-center gap-2">
+            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-900 flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Plaintext Input' : 'Ciphertext Input'}</span>
               <span className="text-zinc-500 font-normal">
                 ({inputText.length} chars)
@@ -698,7 +705,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
 
             <button
               onClick={handleClear}
-              className="px-3 py-1 text-zinc-400 hover:text-white bg-[#0A0A0A] hover:bg-[#222222] border border-[#262626] rounded-xl text-xs font-mono-code uppercase tracking-wider flex items-center gap-1 transition-colors"
+              className="px-3 py-1 text-zinc-700 hover:text-black bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-xl text-xs font-mono-code uppercase tracking-wider flex items-center gap-1 transition-colors"
               title="Clear input"
             >
               <RotateCcw className="w-3 h-3" /> Clear
@@ -713,16 +720,16 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
                 ? 'TYPE MESSAGE TO ENCRYPT...'
                 : 'ENTER CIPHERTEXT TO DECRYPT...'
             }
-            className="w-full h-48 bg-[#0A0A0A] text-white font-mono-code text-sm p-4 border border-[#262626] focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
+            className="w-full h-48 bg-zinc-50 text-black font-mono-code text-sm p-4 border border-zinc-300 focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
           />
 
-          <div className="flex items-center justify-between mt-3 text-xs text-zinc-400 font-mono-code">
+          <div className="flex items-center justify-between mt-3 text-xs text-zinc-600 font-mono-code">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={preserveSpaces}
                 onChange={(e) => setPreserveSpaces(e.target.checked)}
-                className="accent-[#FF3E00] bg-[#0A0A0A] border-[#333] rounded"
+                className="accent-[#FF3E00] bg-zinc-100 border-zinc-300 rounded"
               />
               <span>Preserve spaces & punctuation</span>
             </label>
@@ -734,16 +741,16 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         </div>
 
         {/* Output Text Area */}
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
+        <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-300 flex items-center gap-2">
+            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-900 flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Ciphertext Result' : 'Plaintext Result'}</span>
             </label>
 
             <div className="flex items-center gap-2 font-mono-code">
               <button
                 onClick={handleSwap}
-                className="px-3.5 py-1.5 text-zinc-300 hover:text-white bg-[#0A0A0A] hover:bg-[#222222] border border-[#262626] rounded-xl text-xs uppercase flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 text-zinc-800 hover:text-black bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-xl text-xs uppercase flex items-center gap-1.5 transition-colors font-bold"
                 title="Swap Input & Output"
               >
                 <ArrowRightLeft className="w-3 h-3" /> Swap
@@ -751,42 +758,42 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
               <button
                 onClick={handleCopy}
                 disabled={!outputText || outputText.startsWith('[ERROR')}
-                className="px-3.5 py-1.5 text-white bg-[#FF3E00] hover:bg-[#E03700] disabled:bg-[#1A1A1A] disabled:text-zinc-600 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-[#FF3E00]/20"
+                className="px-3.5 py-1.5 text-white bg-black hover:bg-[#FF3E00] disabled:bg-zinc-200 disabled:text-zinc-400 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
               >
-                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                 {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
 
-          <div className="w-full h-48 bg-[#0A0A0A] text-[#FF3E00] font-mono-code text-sm p-4 border border-[#262626] rounded-2xl overflow-y-auto whitespace-pre-wrap break-words select-all">
+          <div className="w-full h-48 bg-zinc-900 text-[#FF3E00] font-mono-code text-sm p-4 border border-zinc-800 rounded-2xl overflow-y-auto whitespace-pre-wrap break-words select-all">
             {outputText || (
-              <span className="text-zinc-600 italic font-sans text-xs">
+              <span className="text-zinc-500 italic font-sans text-xs">
                 Output generated in real time...
               </span>
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-xs text-zinc-500 font-mono-code">
+          <div className="mt-3 flex items-center justify-between text-xs text-zinc-600 font-mono-code">
             <span>
               {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) ? (
                 <>
-                  Mode: <strong className="text-emerald-400 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-300">"{blockKey}"</strong>
-                  {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && <> | IV: <strong className="text-cyan-300">"{blockIv}"</strong></>}
-                  {cipherMethod === 'ctr' && <> | Nonce: <strong className="text-pink-300">{blockNonce}</strong></>}
+                  Mode: <strong className="text-emerald-600 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-900">"{blockKey}"</strong>
+                  {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && <> | IV: <strong className="text-cyan-600">"{blockIv}"</strong></>}
+                  {cipherMethod === 'ctr' && <> | Nonce: <strong className="text-pink-600">{blockNonce}</strong></>}
                 </>
               ) : cipherMethod === 'vigenere' ? (
-                <>Keyword: <strong className="text-sky-300">"{vigenereKey}"</strong></>
+                <>Keyword: <strong className="text-sky-600">"{vigenereKey}"</strong></>
               ) : cipherMethod === 'playfair' ? (
-                <>Key Phrase: <strong className="text-purple-300">"{playfairKey}"</strong></>
+                <>Key Phrase: <strong className="text-purple-600">"{playfairKey}"</strong></>
               ) : cipherMethod === 'hill' ? (
-                <>Matrix det(K): <strong className="text-emerald-300">{getHillDeterminant(hillMatrix)}</strong></>
+                <>Matrix det(K): <strong className="text-emerald-600">{getHillDeterminant(hillMatrix)}</strong></>
               ) : (
-                <>Keys: <strong className="text-zinc-300">a={keyA}, b={keyB}</strong></>
+                <>Keys: <strong className="text-zinc-900">a={keyA}, b={keyB}</strong></>
               )}
             </span>
             <span>
-              Action: <strong className="text-white uppercase">{mode}</strong>
+              Action: <strong className="text-black uppercase">{mode}</strong>
             </span>
           </div>
         </div>

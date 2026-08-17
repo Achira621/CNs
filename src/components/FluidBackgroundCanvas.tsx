@@ -277,23 +277,23 @@ export const FluidBackgroundCanvas: React.FC = () => {
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Background ambient gradient
+      // Light-Gray Background ambient gradient matching study.fl-ex.co.kr (#F1F1F1)
       const bgGrad = ctx.createRadialGradient(
         width / 2,
         height / 2,
         100,
         width / 2,
         height / 2,
-        width * 0.7
+        width * 0.8
       );
-      bgGrad.addColorStop(0, '#08080C');
-      bgGrad.addColorStop(1, '#040406');
+      bgGrad.addColorStop(0, '#FFFFFF');
+      bgGrad.addColorStop(1, '#EAEAEA');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // Update & Draw Fluid Grid Nodes
-      ctx.fillStyle = 'rgba(255, 62, 0, 0.15)';
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      // Update & Draw Fluid Grid Nodes (Dark micro-dots on light background)
+      ctx.fillStyle = 'rgba(255, 62, 0, 0.25)';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
       ctx.lineWidth = 1;
 
       for (let i = 0; i < gridNodes.length; i++) {
@@ -327,12 +327,12 @@ export const FluidBackgroundCanvas: React.FC = () => {
         // Draw node point
         const disFromBase = Math.hypot(node.x - node.baseX, node.y - node.baseY);
         if (disFromBase > 2) {
-          ctx.fillStyle = `rgba(255, 62, 0, ${Math.min(0.8, disFromBase / 15)})`;
+          ctx.fillStyle = `rgba(255, 62, 0, ${Math.min(0.9, disFromBase / 12)})`;
           ctx.beginPath();
           ctx.arc(node.x, node.y, 2 + Math.min(2, disFromBase / 8), 0, Math.PI * 2);
           ctx.fill();
         } else {
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
           ctx.fillRect(node.x - 0.5, node.y - 0.5, 1.5, 1.5);
         }
       }
