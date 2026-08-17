@@ -19,6 +19,7 @@ import {
   getHillInverseMatrix,
   HillMatrixKey,
 } from '../utils/polyMath';
+import { processBlockCipher, BlockCipherResult } from '../utils/blockCipherMath';
 import {
   ArrowRightLeft,
   Copy,
@@ -79,6 +80,12 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
   const [showStepVector, setShowStepVector] = useState(true);
   const [preserveSpaces, setPreserveSpaces] = useState(true);
 
+  // Block cipher states
+  const [blockKey, setBlockKey] = useState('CYBERKEY');
+  const [blockIv, setBlockIv] = useState('INITVEC1');
+  const [blockNonce, setBlockNonce] = useState(100);
+  const [blockSize, setBlockSize] = useState(4);
+
   const currentMethodInfo = CIPHER_METHODS[cipherMethod] || CIPHER_METHODS.affine;
 
   // Key validation
@@ -86,8 +93,27 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
   const aInverse = useMemo(() => modInverse(keyA, 26), [keyA]);
   const validAs = useMemo(() => getValidKeysA(26), []);
 
+  // Compute block cipher result dynamically
+  const blockResult: BlockCipherResult | null = useMemo(() => {
+    if (['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod)) {
+      return processBlockCipher(
+        mode,
+        cipherMethod as 'ecb' | 'cbc' | 'cfb' | 'ofb' | 'ctr',
+        inputText,
+        blockKey,
+        blockIv,
+        blockNonce,
+        blockSize
+      );
+    }
+    return null;
+  }, [cipherMethod, mode, inputText, blockKey, blockIv, blockNonce, blockSize]);
+
   // Compute output text dynamically
   const outputText = useMemo(() => {
+    if (['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && blockResult) {
+      return blockResult.ciphertext;
+    }
     if (cipherMethod === 'vigenere') {
       return vigenereCipher(inputText, vigenereKey, mode).resultText;
     }
@@ -114,6 +140,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     vigenereKey,
     playfairKey,
     hillMatrix,
+    blockResult,
     mode,
     keyValidation.isValid,
     preserveSpaces,
@@ -237,6 +264,86 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         </div>
 
         {/* Conditional Key Controls based on Cipher Method */}
+        {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && (
+          <div className="bg-[#0A0A0A] p-5 border border-emerald-500/40 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-emerald-400 flex items-center gap-2">
+                <Binary className="w-4 h-4" />
+                <span>Block Cipher Mode Parameters ({cipherMethod.toUpperCase()})</span>
+              </label>
+              <span className="text-xs font-mono-code font-bold text-white bg-[#141414] px-3 py-1 border border-[#333] rounded-xl">
+                Block Size: {blockSize} Bytes
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="text-[10px] font-mono-code text-zinc-400 uppercase font-bold block mb-1">
+                  Secret Key String
+                </label>
+                <input
+                  type="text"
+                  value={blockKey}
+                  onChange={(e) => setBlockKey(e.target.value)}
+                  placeholder="KEY..."
+                  className="w-full bg-[#141414] text-white font-mono-code text-xs px-3 py-2 border border-[#333] focus:border-emerald-500 rounded-xl outline-none"
+                />
+              </div>
+
+              {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && (
+                <div>
+                  <label className="text-[10px] font-mono-code text-cyan-400 uppercase font-bold block mb-1">
+                    Initialization Vector (IV)
+                  </label>
+                  <input
+                    type="text"
+                    value={blockIv}
+                    onChange={(e) => setBlockIv(e.target.value)}
+                    placeholder="IV VECTOR..."
+                    className="w-full bg-[#141414] text-white font-mono-code text-xs px-3 py-2 border border-[#333] focus:border-cyan-500 rounded-xl outline-none"
+                  />
+                </div>
+              )}
+
+              {cipherMethod === 'ctr' && (
+                <div>
+                  <label className="text-[10px] font-mono-code text-pink-400 uppercase font-bold block mb-1">
+                    Initial Counter (Nonce)
+                  </label>
+                  <input
+                    type="number"
+                    value={blockNonce}
+                    onChange={(e) => setBlockNonce(Number(e.target.value))}
+                    className="w-full bg-[#141414] text-white font-mono-code text-xs px-3 py-2 border border-[#333] focus:border-pink-500 rounded-xl outline-none"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[10px] font-mono-code text-zinc-400 uppercase font-bold block mb-1">
+                  Block Size (Bytes)
+                </label>
+                <select
+                  value={blockSize}
+                  onChange={(e) => setBlockSize(Number(e.target.value))}
+                  className="w-full bg-[#141414] text-white font-mono-code text-xs px-3 py-2 border border-[#333] focus:border-emerald-500 rounded-xl outline-none"
+                >
+                  <option value={4}>4 Bytes (32-bit)</option>
+                  <option value={8}>8 Bytes (64-bit)</option>
+                </select>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-400 font-sans">
+              {cipherMethod === 'ecb' && 'ECB enciphers blocks independently. Same plaintext blocks output identical ciphertext blocks.'}
+              {cipherMethod === 'cbc' && 'CBC XORs plaintext block with previous ciphertext block (or IV for block 1) before enciphering.'}
+              {cipherMethod === 'cfb' && 'CFB enciphers previous ciphertext block to produce keystream XORed with plaintext block.'}
+              {cipherMethod === 'ofb' && 'OFB generates independent keystream by encrypting IV repeatedly.'}
+              {cipherMethod === 'ctr' && 'CTR enciphers incremental counter values to generate parallel keystream.'}
+            </p>
+          </div>
+        )}
+
         {cipherMethod === 'vigenere' && (
           <div className="bg-[#0A0A0A] p-5 border border-sky-500/40 rounded-2xl space-y-4">
             <div className="flex items-center justify-between">
@@ -688,8 +795,60 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         </div>
       </div>
 
+      {/* Block Cipher Step-by-Step Block Vector */}
+      {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && blockResult && (
+        <div className="bg-[#141414] border border-emerald-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+            <div>
+              <h3 className="text-xs font-mono-code font-bold text-emerald-400 uppercase tracking-[0.15em] flex items-center gap-2">
+                <span>BLOCK CIPHER VECTOR PIPELINE ({cipherMethod.toUpperCase()})</span>
+                <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 font-normal border border-emerald-500/30 rounded-full">
+                  {blockResult.steps.length} Blocks ({blockSize * 8}-bit)
+                </span>
+              </h3>
+              <p className="text-xs text-zinc-400 font-sans mt-1">
+                Hex vectors & IV/Keystream feedback transformations for each block.
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono-code text-zinc-300 border-collapse">
+              <thead>
+                <tr className="bg-[#0A0A0A] border-b border-[#262626] text-zinc-500 uppercase text-[10px]">
+                  <th className="p-3">Block #</th>
+                  <th className="p-3">Plaintext (Text & Hex)</th>
+                  <th className="p-3">IV / Prev Cipher / Nonce</th>
+                  <th className="p-3">Keystream Hex</th>
+                  <th className="p-3">Ciphertext (Hex & Text)</th>
+                  <th className="p-3">Explanation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#222222]">
+                {blockResult.steps.map((step) => (
+                  <tr key={step.blockIndex} className="hover:bg-[#1A1A1E] transition-colors">
+                    <td className="p-3 font-bold text-emerald-400">Block {step.blockIndex}</td>
+                    <td className="p-3">
+                      <span className="text-white font-bold">"{step.plaintextBlock}"</span>
+                      <span className="block text-[10px] text-zinc-500">{step.plaintextHex}</span>
+                    </td>
+                    <td className="p-3 text-cyan-300 font-bold">{step.ivOrPrevCipherHex}</td>
+                    <td className="p-3 text-amber-300">{step.keystreamHex}</td>
+                    <td className="p-3">
+                      <span className="text-[#FF3E00] font-bold">{step.ciphertextHex}</span>
+                      <span className="block text-[10px] text-zinc-400">"{step.ciphertextBlock}"</span>
+                    </td>
+                    <td className="p-3 text-zinc-400 text-[11px] font-sans">{step.explanation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Step-by-Step Character Calculation Pipeline Vector */}
-      {inputText.length > 0 && keyValidation.isValid && (
+      {inputText.length > 0 && keyValidation.isValid && !['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && (
         <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between border-b border-[#262626] pb-3">
             <div>

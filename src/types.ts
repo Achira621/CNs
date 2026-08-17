@@ -7,9 +7,26 @@ export type CipherMethod =
   | 'affine'
   | 'vigenere'
   | 'playfair'
-  | 'hill';
+  | 'hill'
+  | 'ecb'
+  | 'cbc'
+  | 'cfb'
+  | 'ofb'
+  | 'ctr';
 
-export type CipherCategory = 'monoalphabetic' | 'polyalphabetic';
+export type CipherCategory = 'monoalphabetic' | 'polyalphabetic' | 'block';
+
+export interface BlockCipherStep {
+  blockIndex: number;
+  plaintextBlock: string;
+  plaintextHex: string;
+  ivOrPrevCipherHex: string;
+  xorResultHex: string;
+  keystreamHex: string;
+  ciphertextHex: string;
+  ciphertextBlock: string;
+  explanation: string;
+}
 
 export interface CipherMethodInfo {
   id: CipherMethod;

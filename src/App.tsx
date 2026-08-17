@@ -9,6 +9,7 @@ import { MasterclassLessonsTab } from './components/MasterclassLessonsTab';
 import { AITutorDrawer } from './components/AITutorDrawer';
 import { PresetsModal } from './components/PresetsModal';
 import { KeyCursor } from './components/KeyCursor';
+import { FluidBackgroundCanvas } from './components/FluidBackgroundCanvas';
 import { CipherMethod } from './types';
 import { CIPHER_METHODS, isCoprime } from './utils/affineMath';
 
@@ -82,9 +83,10 @@ export default function App() {
   // If viewMode is 'hero', show Hero Landing Page
   if (viewMode === 'hero') {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white relative">
+      <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white relative">
+        <FluidBackgroundCanvas />
         <KeyCursor enabled={cursorEnabled} />
-        <HeroPage onGetIntoApp={() => setViewMode('menu')} />
+        <HeroPage onGetIntoApp={() => setViewMode('menu')} onOpenMenu={() => setViewMode('menu')} />
       </div>
     );
   }
@@ -92,7 +94,8 @@ export default function App() {
   // If viewMode is 'menu', show Interactive Tree Taxonomy Menu
   if (viewMode === 'menu') {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white flex flex-col relative">
+      <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white flex flex-col relative">
+        <FluidBackgroundCanvas />
         <KeyCursor enabled={cursorEnabled} />
         <Header
           activeTab={activeTab}
@@ -118,8 +121,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white flex flex-col relative overflow-x-hidden">
-      {/* Interactive Key Cursor */}
+    <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white flex flex-col relative overflow-x-hidden">
+      {/* Dynamic Fluid Background & 3D Shapes */}
+      <FluidBackgroundCanvas />
+
+      {/* Zero-Gravity Key Cursor */}
       <KeyCursor enabled={cursorEnabled} />
 
       {/* Top Header & Navigation */}

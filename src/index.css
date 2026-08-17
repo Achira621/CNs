@@ -18,6 +18,11 @@
   100% { transform: translateX(0%); }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
 .animate-marquee {
   display: flex;
   width: max-content;
@@ -42,15 +47,20 @@
   animation-play-state: paused;
 }
 
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0F0F0F;
+  background: #08080A;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A2A2A;
+  background: #22222B;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #FF3E00;
@@ -62,3 +72,18 @@
   cursor: none !important;
 }
 
+/* Cyber Template Aesthetics matching study.fl-ex.co.kr */
+.cyber-frame-border {
+  border: 1px solid rgba(255, 62, 0, 0.25);
+  box-shadow: 0 0 25px rgba(255, 62, 0, 0.08);
+}
+
+.cyber-card-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cyber-card-glow:hover {
+  border-color: rgba(255, 62, 0, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(255, 62, 0, 0.3);
+  transform: translateY(-3px);
+}

@@ -49,7 +49,7 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
   onOpenAITutorWithPrompt,
 }) => {
   const [hoveredCharIndex, setHoveredCharIndex] = useState<number | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'clock' | 'vigenere' | 'playfair' | 'hill' | 'euclid' | 'heatmap'>('clock');
+  const [selectedTab, setSelectedTab] = useState<'clock' | 'vigenere' | 'playfair' | 'hill' | 'block' | 'euclid' | 'heatmap'>('clock');
 
   const currentMethodInfo = CIPHER_METHODS[cipherMethod] || CIPHER_METHODS.affine;
   const validAs = useMemo(() => getValidKeysA(26), []);
@@ -147,6 +147,16 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
               }`}
             >
               🔢 Hill Matrix Algebra
+            </button>
+            <button
+              onClick={() => setSelectedTab('block')}
+              className={`px-3.5 py-1.5 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 whitespace-nowrap ${
+                selectedTab === 'block'
+                  ? 'bg-[#FF3E00] text-white font-extrabold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              ⚡ Block Cipher Modes
             </button>
             <button
               onClick={() => setSelectedTab('euclid')}
@@ -389,6 +399,110 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB: Block Cipher Mode Architecture Diagrams */}
+      {selectedTab === 'block' && (
+        <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-6">
+          <div className="border-b border-[#262626] pb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-mono-code font-bold text-[#FF3E00] uppercase tracking-[0.15em] flex items-center gap-2">
+                <Binary className="w-4 h-4" />
+                <span>INTERACTIVE BLOCK CIPHER ARCHITECTURE DIAGRAMS</span>
+              </h3>
+              <p className="text-xs text-zinc-400 font-sans mt-1">
+                Visual representation of Initialization Vectors (IV), XOR chaining, and feedback loops across all 5 block modes.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            {[
+              { id: 'ecb', name: 'ECB Mode', desc: 'Electronic Codebook' },
+              { id: 'cbc', name: 'CBC Mode', desc: 'Cipher Block Chaining' },
+              { id: 'cfb', name: 'CFB Mode', desc: 'Cipher Feedback' },
+              { id: 'ofb', name: 'OFB Mode', desc: 'Output Feedback' },
+              { id: 'ctr', name: 'CTR Mode', desc: 'Counter Mode' },
+            ].map((m) => (
+              <button
+                key={m.id}
+                onClick={() => onCipherMethodChange && onCipherMethodChange(m.id as CipherMethod)}
+                className={`p-4 rounded-2xl border text-left font-mono-code transition-all ${
+                  cipherMethod === m.id
+                    ? 'bg-[#1F1F28] border-[#FF3E00] shadow-lg shadow-[#FF3E00]/20'
+                    : 'bg-[#0A0A0A] border-[#262626] hover:border-zinc-500'
+                }`}
+              >
+                <div className="text-xs font-bold text-white">{m.name}</div>
+                <div className="text-[10px] text-amber-400 font-semibold">{m.desc}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Interactive Block Diagram SVG */}
+          <div className="bg-[#0A0A0A] border border-[#262626] rounded-3xl p-6 flex flex-col items-center justify-center space-y-4">
+            <div className="flex items-center justify-between w-full font-mono-code text-xs">
+              <span className="text-emerald-400 font-bold uppercase">
+                Active Mode Diagram: {cipherMethod.toUpperCase()}
+              </span>
+              <span className="text-zinc-500 text-[11px]">
+                Showing 2 Consecutive Message Blocks (P1 ➔ C1, P2 ➔ C2)
+              </span>
+            </div>
+
+            <div className="w-full overflow-x-auto py-4">
+              <svg viewBox="0 0 640 220" className="w-full max-w-[640px] mx-auto select-none">
+                {/* Block 1 */}
+                <rect x="40" y="20" width="90" height="35" rx="8" fill="#181820" stroke="#FF3E00" strokeWidth="2" />
+                <text x="85" y="42" fill="#FFFFFF" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Plaintext P1
+                </text>
+
+                {cipherMethod === 'cbc' && (
+                  <>
+                    <rect x="40" y="80" width="90" height="30" rx="6" fill="#101018" stroke="#00E5FF" strokeWidth="1.5" />
+                    <text x="85" y="100" fill="#00E5FF" fontSize="10" textAnchor="middle" className="font-mono-code">
+                      IV Vector
+                    </text>
+                    <line x1="85" y1="55" x2="85" y2="80" stroke="#FF3E00" strokeWidth="2" markerEnd="url(#arrow)" />
+                  </>
+                )}
+
+                <rect x="40" y="130" width="90" height="40" rx="8" fill="#1C1C28" stroke="#333346" strokeWidth="2" />
+                <text x="85" y="154" fill="#FFC107" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Block Cipher (K)
+                </text>
+
+                <line x1="85" y1="170" x2="85" y2="200" stroke="#FF3E00" strokeWidth="2" />
+                <rect x="40" y="185" width="90" height="30" rx="8" fill="#FF3E00" />
+                <text x="85" y="204" fill="#FFFFFF" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Ciphertext C1
+                </text>
+
+                {/* Arrow Feedback Connector from C1 to Block 2 in CBC */}
+                {cipherMethod === 'cbc' && (
+                  <path d="M 130 200 L 220 200 L 220 95 L 360 95" fill="none" stroke="#00E5FF" strokeWidth="2" strokeDasharray="4 4" />
+                )}
+
+                {/* Block 2 */}
+                <rect x="360" y="20" width="90" height="35" rx="8" fill="#181820" stroke="#FF3E00" strokeWidth="2" />
+                <text x="405" y="42" fill="#FFFFFF" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Plaintext P2
+                </text>
+
+                <rect x="360" y="130" width="90" height="40" rx="8" fill="#1C1C28" stroke="#333346" strokeWidth="2" />
+                <text x="405" y="154" fill="#FFC107" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Block Cipher (K)
+                </text>
+
+                <rect x="360" y="185" width="90" height="30" rx="8" fill="#FF3E00" />
+                <text x="405" y="204" fill="#FFFFFF" fontSize="11" fontWeight="bold" textAnchor="middle" className="font-mono-code">
+                  Ciphertext C2
+                </text>
+              </svg>
+            </div>
           </div>
         </div>
       )}

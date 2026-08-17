@@ -100,37 +100,94 @@ export const METHOD_CARDS: MethodCardInfo[] = [
     gradient: 'from-emerald-500/20 to-teal-500/20 text-emerald-400',
     borderHover: 'hover:border-emerald-500/60 hover:shadow-emerald-500/10',
   },
+  // Block Ciphers
+  {
+    id: 'ecb',
+    name: 'ECB (Electronic Codebook)',
+    category: 'block',
+    tagline: 'Direct Block Encryption',
+    formula: 'Cᵢ = E_K(Pᵢ)',
+    description: 'Encrypts each plaintext block independently. Identical plaintext blocks produce identical ciphertext blocks.',
+    icon: Binary,
+    gradient: 'from-emerald-500/20 to-teal-500/20 text-emerald-400',
+    borderHover: 'hover:border-emerald-500/60 hover:shadow-emerald-500/10',
+  },
+  {
+    id: 'cbc',
+    name: 'CBC (Cipher Block Chaining)',
+    category: 'block',
+    tagline: 'Chained Block XOR with IV',
+    formula: 'Cᵢ = E_K(Pᵢ ⊕ Cᵢ₋₁)',
+    description: 'XORs each plaintext block with previous ciphertext block (or IV for block 1) before encryption.',
+    icon: Layers,
+    gradient: 'from-cyan-500/20 to-blue-500/20 text-cyan-400',
+    borderHover: 'hover:border-cyan-500/60 hover:shadow-cyan-500/10',
+  },
+  {
+    id: 'cfb',
+    name: 'CFB (Cipher Feedback)',
+    category: 'block',
+    tagline: 'Self-Synchronizing Stream Mode',
+    formula: 'Cᵢ = Pᵢ ⊕ E_K(Cᵢ₋₁)',
+    description: 'Enciphered previous ciphertext block forms keystream XORed with plaintext block.',
+    icon: Cpu,
+    gradient: 'from-indigo-500/20 to-violet-500/20 text-indigo-400',
+    borderHover: 'hover:border-indigo-500/60 hover:shadow-indigo-500/10',
+  },
+  {
+    id: 'ofb',
+    name: 'OFB (Output Feedback)',
+    category: 'block',
+    tagline: 'Synchronous Keystream Mode',
+    formula: 'Oᵢ = E_K(Oᵢ₋₁), Cᵢ = Pᵢ ⊕ Oᵢ',
+    description: 'Generates independent keystream by repeatedly encrypting IV vector.',
+    icon: GitFork,
+    gradient: 'from-purple-500/20 to-fuchsia-500/20 text-purple-400',
+    borderHover: 'hover:border-purple-500/60 hover:shadow-purple-500/10',
+  },
+  {
+    id: 'ctr',
+    name: 'CTR (Counter Mode)',
+    category: 'block',
+    tagline: 'Parallelizable Counter Stream',
+    formula: 'Oᵢ = E_K(Nonce ∥ i), Cᵢ = Pᵢ ⊕ Oᵢ',
+    description: 'Encrypts successive counter values to produce keystream. Fully parallelizable.',
+    icon: Sparkles,
+    gradient: 'from-pink-500/20 to-rose-500/20 text-pink-400',
+    borderHover: 'hover:border-pink-500/60 hover:shadow-pink-500/10',
+  },
 ];
 
 export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
   onSelectMethod,
   currentMethod,
 }) => {
-  const [activeBranch, setActiveBranch] = useState<'all' | 'monoalphabetic' | 'polyalphabetic'>('all');
+  const [activeBranch, setActiveBranch] = useState<'all' | 'monoalphabetic' | 'polyalphabetic' | 'block'>('all');
 
   const monoMethods = METHOD_CARDS.filter((m) => m.category === 'monoalphabetic');
   const polyMethods = METHOD_CARDS.filter((m) => m.category === 'polyalphabetic');
+  const blockMethods = METHOD_CARDS.filter((m) => m.category === 'block');
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Ambient background glow */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-[#FF3E00]/10 via-purple-500/10 to-sky-500/10 blur-[130px] rounded-full pointer-events-none" />
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-[#FF3E00]/10 via-purple-500/10 to-emerald-500/10 blur-[130px] rounded-full pointer-events-none" />
 
       {/* Header section */}
       <div className="max-w-6xl mx-auto text-center space-y-4 mb-12">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#181818] border border-[#333] rounded-full text-xs font-mono-code text-amber-400 shadow-md">
           <GitFork className="w-4 h-4 text-[#FF3E00]" />
-          <span>CYPHER TAXONOMY ARCHITECTURE</span>
+          <span>CIPHER TAXONOMY ARCHITECTURE</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-serif-display font-bold tracking-tight text-white">
-          Classical Substitution Cipher Tree
+          Cryptography Cipher Taxonomy Tree
         </h1>
         <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">
-          Navigate through the mathematical hierarchy of substitution ciphers. Select any method from Monoalphabetic or Polyalphabetic branches to launch the studio workspace.
+          Explore Monoalphabetic, Polyalphabetic, and Block Cipher modes. Select any method to launch the studio workspace.
         </p>
 
         {/* Branch Filter Tabs */}
-        <div className="flex items-center justify-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           <button
             onClick={() => setActiveBranch('all')}
             className={`px-4 py-2 text-xs font-mono-code font-bold uppercase tracking-wider rounded-xl transition-all ${
@@ -139,7 +196,7 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
                 : 'bg-[#141414] text-zinc-400 hover:text-white border border-[#262626]'
             }`}
           >
-            All Methods (6)
+            All Methods (11)
           </button>
           <button
             onClick={() => setActiveBranch('monoalphabetic')}
@@ -160,6 +217,16 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
             }`}
           >
             Polyalphabetic (3)
+          </button>
+          <button
+            onClick={() => setActiveBranch('block')}
+            className={`px-4 py-2 text-xs font-mono-code font-bold uppercase tracking-wider rounded-xl transition-all ${
+              activeBranch === 'block'
+                ? 'bg-emerald-500 text-black font-extrabold shadow-lg shadow-emerald-500/25'
+                : 'bg-[#141414] text-zinc-400 hover:text-white border border-[#262626]'
+            }`}
+          >
+            Block Ciphers (5)
           </button>
         </div>
       </div>
@@ -365,6 +432,94 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
                       <div className="mt-4 pt-3 border-t border-[#222] flex items-center justify-between text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
                         <span>Launch Studio</span>
                         <ArrowRight className="w-4 h-4 text-sky-400 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* BRANCH 3: BLOCK CIPHERS */}
+          {(activeBranch === 'all' || activeBranch === 'block') && (
+            <div className="bg-[#111111] border border-[#242424] rounded-3xl p-6 shadow-2xl relative space-y-6 lg:col-span-2">
+              {/* Branch Header Node */}
+              <div className="flex items-center justify-between border-b border-[#222] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-[1rem] bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md">
+                    <Binary className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono-code font-bold uppercase tracking-wider text-emerald-400 block">
+                      PRIMARY BRANCH 03
+                    </span>
+                    <h3 className="text-lg font-serif-display font-bold text-white">
+                      Block Cipher Modes (ECB, CBC, CFB, OFB, CTR)
+                    </h3>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[11px] font-mono-code font-bold">
+                  Fixed-Length Block Operations
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 font-sans leading-relaxed">
+                Processes data in fixed-size blocks using feedback loops, initialization vectors (IV), XOR streaming, and counter values.
+              </p>
+
+              {/* Leaves Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {blockMethods.map((method) => {
+                  const Icon = method.icon;
+                  const isSelected = currentMethod === method.id;
+
+                  return (
+                    <div
+                      key={method.id}
+                      onClick={() => onSelectMethod(method.id)}
+                      className={`group relative bg-[#161616] border ${
+                        isSelected
+                          ? 'border-emerald-500 shadow-lg shadow-emerald-500/20 bg-[#141C18]'
+                          : 'border-[#282828]'
+                      } ${method.borderHover} rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-col justify-between`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-[1rem] bg-gradient-to-br ${method.gradient} border border-white/10 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}
+                            >
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-serif-display font-bold text-white group-hover:text-emerald-400 transition-colors">
+                                  {method.name}
+                                </h4>
+                                {isSelected && (
+                                  <span className="px-2 py-0.5 bg-emerald-500 text-black text-[9px] font-mono-code font-bold uppercase rounded-md">
+                                    ACTIVE
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-emerald-400/90 font-mono-code font-semibold block">
+                                {method.tagline}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 inline-block px-2.5 py-1 bg-[#0A0A0A] border border-[#2D2D2D] rounded-xl text-[11px] font-mono-code text-zinc-300 font-bold">
+                          {method.formula}
+                        </div>
+
+                        <p className="mt-3 text-xs text-zinc-400 font-sans leading-relaxed">
+                          {method.description}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-[#222] flex items-center justify-between text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
+                        <span>Launch Block Studio</span>
+                        <ArrowRight className="w-4 h-4 text-emerald-400 transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
                   );

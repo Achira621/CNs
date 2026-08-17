@@ -46,11 +46,11 @@ export const Header: React.FC<HeaderProps> = ({
   ] as const;
 
   return (
-    <header className="sticky top-0 z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#262626] text-[#F5F5F5] shadow-xl">
+    <header className="sticky top-0 z-30 bg-[#08080C]/90 backdrop-blur-xl border-b border-[#222232] text-[#F5F5F5] shadow-2xl">
       {/* Sliding Marquee Animation Header Ticker */}
       <div
         onClick={onGoToHero}
-        className="bg-[#121212] border-b border-[#222222] py-1.5 overflow-hidden relative cursor-pointer hover:bg-[#181818] transition-colors group"
+        className="bg-[#101016] border-b border-[#20202E] py-1.5 overflow-hidden relative cursor-pointer hover:bg-[#161622] transition-colors group"
         title="Click to view Project Credits & Hero Landing Page"
       >
         <div className="animate-marquee whitespace-nowrap flex items-center gap-8 font-mono-code text-[11px] text-zinc-300">
