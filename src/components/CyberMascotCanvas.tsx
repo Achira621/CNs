@@ -241,6 +241,33 @@ export const CyberMascotCanvas: React.FC = () => {
 
   return (
     <div className="w-full h-[360px] sm:h-[450px] relative flex items-center justify-center pointer-events-auto">
+      {/* Corner Bracket Frames (┌ ┐ └ ┘) matching study.fl-ex.co.kr template screenshot */}
+      <div className="absolute top-4 left-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
+        ┌
+      </div>
+      <div className="absolute top-4 right-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
+        ┐
+      </div>
+      <div className="absolute bottom-4 left-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
+        └
+      </div>
+      <div className="absolute bottom-4 right-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
+        ┘
+      </div>
+
+      {/* Progress Line Bar & -000% indicator */}
+      <div className="absolute top-10 right-10 flex items-center gap-2 font-mono-code text-xs font-bold text-[#FF3E00] z-20 pointer-events-none">
+        <div className="w-24 h-[2px] bg-[#FF3E00] shadow-[0_0_8px_#FF3E00]" />
+        <span>-000%</span>
+      </div>
+
+      {/* Monospace Subtext beneath mascot */}
+      <div className="absolute bottom-8 text-center font-mono-code text-[11px] text-zinc-300 tracking-wider z-20 pointer-events-none flex items-center gap-2">
+        <span>3D 모델링 불러오는 중.. O_O</span>
+        <span className="text-zinc-600">|</span>
+        <span className="text-[#FF3E00] font-bold">CYBER VAULT READY</span>
+      </div>
+
       <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
     </div>
   );

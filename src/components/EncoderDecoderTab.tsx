@@ -639,35 +639,49 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         )}
 
         {/* Math Summary Line */}
-        {keyValidation.isValid && (
-          <div className="mt-5 p-3.5 bg-[#0A0A0A] border border-[#262626] rounded-2xl text-zinc-300 text-xs flex flex-wrap items-center justify-between gap-3 font-mono-code">
-            <div className="flex items-center gap-3">
-              <Info className="w-4 h-4 text-[#FF3E00]" />
-              <span>
-                Active Formula: <strong className="text-white">{currentMethodInfo.name}</strong> ➔{' '}
-                <span className="text-[#FF3E00] font-bold">
-                  {keyA === 1 ? `E(x) = (x + ${keyB}) mod 26` : keyB === 0 ? `E(x) = (${keyA}x) mod 26` : `E(x) = (${keyA}x + ${keyB}) mod 26`}
+        <div className="mt-5 p-3.5 bg-[#0A0A0A] border border-[#262626] rounded-2xl text-zinc-300 text-xs flex flex-wrap items-center justify-between gap-3 font-mono-code">
+          <div className="flex items-center gap-3">
+            <Info className="w-4 h-4 text-[#FF3E00]" />
+            <span>
+              Active Formula: <strong className="text-white">{currentMethodInfo.name}</strong> ➔{' '}
+              <span className="text-[#FF3E00] font-bold">
+                {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod)
+                  ? currentMethodInfo.formula
+                  : cipherMethod === 'vigenere'
+                  ? `C_i = (P_i + K_i) mod 26 [Key: "${vigenereKey}"]`
+                  : cipherMethod === 'playfair'
+                  ? `5×5 Digraph Grid [Key: "${playfairKey}"]`
+                  : cipherMethod === 'hill'
+                  ? `C = K · P mod 26`
+                  : keyA === 1
+                  ? `E(x) = (x + ${keyB}) mod 26`
+                  : keyB === 0
+                  ? `E(x) = (${keyA}x) mod 26`
+                  : `E(x) = (${keyA}x + ${keyB}) mod 26`}
+              </span>
+            </span>
+            {!['ecb', 'cbc', 'cfb', 'ofb', 'ctr', 'vigenere', 'playfair', 'hill'].includes(cipherMethod) && (
+              <>
+                <span className="text-zinc-600">|</span>
+                <span>
+                  Inverse Key: <strong className="text-amber-400">a⁻¹ = {aInverse}</strong>
                 </span>
-              </span>
-              <span className="text-zinc-600">|</span>
-              <span>
-                Inverse Key: <strong className="text-amber-400">a⁻¹ = {aInverse}</strong>
-              </span>
-            </div>
-            {onOpenAITutorWithPrompt && (
-              <button
-                onClick={() =>
-                  onOpenAITutorWithPrompt(
-                    `Can you explain the mathematical properties of ${currentMethodInfo.name} with key a = ${keyA}, key b = ${keyB}, and why modular inverse a⁻¹ = ${aInverse}?`
-                  )
-                }
-                className="text-xs text-[#FF3E00] hover:underline flex items-center gap-1.5 font-semibold"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Ask AI Tutor about Formula
-              </button>
+              </>
             )}
           </div>
-        )}
+          {onOpenAITutorWithPrompt && (
+            <button
+              onClick={() =>
+                onOpenAITutorWithPrompt(
+                  `Can you explain the cryptography principles of ${currentMethodInfo.name}? Formula: ${currentMethodInfo.formula}.`
+                )
+              }
+              className="text-xs text-[#FF3E00] hover:underline flex items-center gap-1.5 font-semibold"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Ask AI Tutor about Formula
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Text Input / Output Grid */}
@@ -755,45 +769,61 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
 
           <div className="mt-3 flex items-center justify-between text-xs text-zinc-500 font-mono-code">
             <span>
-              Keys: <strong className="text-zinc-300">a={keyA}, b={keyB}</strong>
+              {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) ? (
+                <>
+                  Mode: <strong className="text-emerald-400 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-300">"{blockKey}"</strong>
+                  {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && <> | IV: <strong className="text-cyan-300">"{blockIv}"</strong></>}
+                  {cipherMethod === 'ctr' && <> | Nonce: <strong className="text-pink-300">{blockNonce}</strong></>}
+                </>
+              ) : cipherMethod === 'vigenere' ? (
+                <>Keyword: <strong className="text-sky-300">"{vigenereKey}"</strong></>
+              ) : cipherMethod === 'playfair' ? (
+                <>Key Phrase: <strong className="text-purple-300">"{playfairKey}"</strong></>
+              ) : cipherMethod === 'hill' ? (
+                <>Matrix det(K): <strong className="text-emerald-300">{getHillDeterminant(hillMatrix)}</strong></>
+              ) : (
+                <>Keys: <strong className="text-zinc-300">a={keyA}, b={keyB}</strong></>
+              )}
             </span>
             <span>
-              Mode: <strong className="text-white uppercase">{mode}</strong>
+              Action: <strong className="text-white uppercase">{mode}</strong>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Alphabet Transformation Map Grid */}
-      <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-[#262626] pb-3">
-          <h3 className="text-xs font-mono-code font-bold text-white uppercase tracking-[0.15em] flex items-center gap-2">
-            <span>ALPHABET TRANSFORMATION MATRIX (MOD 26)</span>
-            <span className="text-zinc-500 font-normal lowercase">
-              (Plaintext ➔ Ciphertext)
-            </span>
-          </h3>
-        </div>
+      {/* Monoalphabetic Transformation Map Grid */}
+      {['caesar_default', 'caesar_custom', 'multiplicative', 'affine'].includes(cipherMethod) && (
+        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-[#262626] pb-3">
+            <h3 className="text-xs font-mono-code font-bold text-white uppercase tracking-[0.15em] flex items-center gap-2">
+              <span>ALPHABET TRANSFORMATION MATRIX (MOD 26)</span>
+              <span className="text-zinc-500 font-normal lowercase">
+                (Plaintext ➔ Ciphertext)
+              </span>
+            </h3>
+          </div>
 
-        <div className="grid grid-cols-6 sm:grid-cols-13 gap-2 pt-1">
-          {mappingTable.map((item) => (
-            <div
-              key={item.original}
-              className="bg-[#0A0A0A] border border-[#262626] rounded-xl p-2.5 text-center transition-all hover:border-[#FF3E00] hover:scale-105 group"
-            >
-              <div className="text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
-                {item.original}
-                <span className="text-[9px] text-zinc-600 ml-0.5">({item.index})</span>
+          <div className="grid grid-cols-6 sm:grid-cols-13 gap-2 pt-1">
+            {mappingTable.map((item) => (
+              <div
+                key={item.original}
+                className="bg-[#0A0A0A] border border-[#262626] rounded-xl p-2.5 text-center transition-all hover:border-[#FF3E00] hover:scale-105 group"
+              >
+                <div className="text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
+                  {item.original}
+                  <span className="text-[9px] text-zinc-600 ml-0.5">({item.index})</span>
+                </div>
+                <div className="text-[10px] text-zinc-600 my-0.5">↓</div>
+                <div className="text-xs font-mono-code font-bold text-[#FF3E00]">
+                  {item.mapped}
+                  <span className="text-[9px] text-zinc-600 ml-0.5">({item.mappedIndex})</span>
+                </div>
               </div>
-              <div className="text-[10px] text-zinc-600 my-0.5">↓</div>
-              <div className="text-xs font-mono-code font-bold text-[#FF3E00]">
-                {item.mapped}
-                <span className="text-[9px] text-zinc-600 ml-0.5">({item.mappedIndex})</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Block Cipher Step-by-Step Block Vector */}
       {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && blockResult && (
