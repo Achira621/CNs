@@ -56,20 +56,25 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1F1F1;
+  background: #0A0A0F;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CCCCCC;
+  background: #2A2A38;
   border-radius: 4px;
+  border: 1px solid #14141E;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #FF3E00;
 }
 
-/* Hide native Windows/OS cursor when custom Key Cursor is toggled on */
-.hide-native-cursor,
-.hide-native-cursor * {
-  cursor: none !important;
+/* Hide native cursor on body when Key Cursor is active, but retain input caret & precision */
+.hide-native-cursor {
+  cursor: default;
+}
+.hide-native-cursor input,
+.hide-native-cursor textarea,
+.hide-native-cursor select {
+  cursor: text !important;
 }
 
 /* Cyber Template Aesthetics matching study.fl-ex.co.kr */

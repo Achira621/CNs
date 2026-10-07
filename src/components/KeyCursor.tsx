@@ -21,6 +21,7 @@ export const KeyCursor: React.FC<KeyCursorProps> = ({ enabled = true }) => {
   const currentPos = useRef({ x: -100, y: -100 });
   const [renderPos, setRenderPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
+  const [isTextTarget, setIsTextTarget] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -127,13 +128,21 @@ export const KeyCursor: React.FC<KeyCursorProps> = ({ enabled = true }) => {
       // Check magnetic hover over interactive targets
       const target = e.target as HTMLElement | null;
       if (target) {
-        const isInteractive =
-          target.tagName === 'BUTTON' ||
-          target.tagName === 'A' ||
+        const isText =
           target.tagName === 'INPUT' ||
-          target.closest('button') ||
-          target.closest('a') ||
-          target.classList.contains('cyber-card-glow');
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          !!target.closest('input') ||
+          !!target.closest('textarea');
+        setIsTextTarget(isText);
+
+        const isInteractive =
+          !isText &&
+          (target.tagName === 'BUTTON' ||
+            target.tagName === 'A' ||
+            !!target.closest('button') ||
+            !!target.closest('a') ||
+            target.classList.contains('cyber-card-glow'));
         setIsHovered(!!isInteractive);
       }
     };
@@ -172,24 +181,28 @@ export const KeyCursor: React.FC<KeyCursorProps> = ({ enabled = true }) => {
 
       {/* Main Zero-Gravity Physics Cursor Badge */}
       <div
-        className="fixed pointer-events-none z-50 transition-transform duration-75 ease-out hidden sm:block"
+        className={`fixed pointer-events-none z-50 transition-all duration-100 ease-out hidden sm:block ${
+          isTextTarget ? 'opacity-25' : 'opacity-100'
+        }`}
         style={{
           left: `${renderPos.x}px`,
           top: `${renderPos.y}px`,
           transform: `translate(-50%, -50%) scale(${
-            isClicking ? 0.8 : isHovered ? 1.4 : 1
+            isTextTarget ? 0.45 : isClicking ? 0.8 : isHovered ? 1.35 : 1
           }) rotate(${isClicking ? '-25deg' : isHovered ? '15deg' : '0deg'})`,
         }}
       >
         <div className="relative flex items-center justify-center">
           {/* Outer Pulsing Neon Magnet Ring */}
-          <div
-            className={`absolute rounded-full border transition-all duration-300 ${
-              isHovered
-                ? 'w-12 h-12 border-[#00E5FF] bg-[#00E5FF]/10 animate-ping opacity-80'
-                : 'w-8 h-8 border-[#FF3E00]/40 bg-[#FF3E00]/20 blur-[1px]'
-            }`}
-          />
+          {!isTextTarget && (
+            <div
+              className={`absolute rounded-full border transition-all duration-300 ${
+                isHovered
+                  ? 'w-12 h-12 border-[#00E5FF] bg-[#00E5FF]/10 animate-ping opacity-80'
+                  : 'w-8 h-8 border-[#FF3E00]/40 bg-[#FF3E00]/20 blur-[1px]'
+              }`}
+            />
+          )}
 
           {/* Key Badge */}
           <div

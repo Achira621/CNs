@@ -21,6 +21,19 @@ import {
 } from '../utils/polyMath';
 import { processBlockCipher, BlockCipherResult } from '../utils/blockCipherMath';
 import {
+  processDesBlock,
+  processTwoDes,
+  processThreeDes,
+  stringToBitString,
+  hexToBitString,
+  TwoDesResult,
+  ThreeDesResult,
+  DesBlockResult,
+} from '../utils/desMath';
+import { processAes, AesTextResult } from '../utils/aesMath';
+import { TwoDesThreeDesStudio } from './TwoDesThreeDesStudio';
+import { AesStudio } from './AesStudio';
+import {
   ArrowRightLeft,
   Copy,
   Check,
@@ -37,8 +50,11 @@ import {
   Layers,
   Grid,
   Binary,
+  Cpu,
+  ShieldAlert,
+  GitFork,
 } from 'lucide-react';
-import { CipherMethod } from '../types';
+import { CipherMethod, CipherCategory } from '../types';
 
 interface EncoderDecoderTabProps {
   cipherMethod?: CipherMethod;
@@ -79,21 +95,32 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
   const [copied, setCopied] = useState(false);
   const [showStepVector, setShowStepVector] = useState(true);
   const [preserveSpaces, setPreserveSpaces] = useState(true);
+  const [algorithmCategoryFilter, setAlgorithmCategoryFilter] = useState<'all' | CipherCategory>('all');
 
-  // Block cipher states
+  // Block cipher modes states
   const [blockKey, setBlockKey] = useState('CYBERKEY');
   const [blockIv, setBlockIv] = useState('INITVEC1');
   const [blockNonce, setBlockNonce] = useState(100);
   const [blockSize, setBlockSize] = useState(4);
 
+  // Modern cipher standards states (DES, 2DES, 3DES, AES)
+  const [desKey, setDesKey] = useState('133457799BBCDFF1');
+  const [twoDesKey1, setTwoDesKey1] = useState('0123456789ABCDEF');
+  const [twoDesKey2, setTwoDesKey2] = useState('FEDCBA9876543210');
+  const [threeDesKey1, setThreeDesKey1] = useState('0123456789ABCDEF');
+  const [threeDesKey2, setThreeDesKey2] = useState('23456789ABCDEF01');
+  const [threeDesKey3, setThreeDesKey3] = useState('456789ABCDEF0123');
+  const [aesKey, setAesKey] = useState('2B7E151628AED2A6ABF7158809CF4F3C');
+  const [aesKeyBits, setAesKeyBits] = useState<128 | 192 | 256>(128);
+
   const currentMethodInfo = CIPHER_METHODS[cipherMethod] || CIPHER_METHODS.affine;
 
-  // Key validation
+  // Key validation for Affine / Caesar / Multiplicative
   const keyValidation = useMemo(() => validateKeyA(keyA, 26), [keyA]);
   const aInverse = useMemo(() => modInverse(keyA, 26), [keyA]);
   const validAs = useMemo(() => getValidKeysA(26), []);
 
-  // Compute block cipher result dynamically
+  // Compute block cipher mode result dynamically
   const blockResult: BlockCipherResult | null = useMemo(() => {
     if (['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod)) {
       return processBlockCipher(
@@ -109,8 +136,54 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     return null;
   }, [cipherMethod, mode, inputText, blockKey, blockIv, blockNonce, blockSize]);
 
+  // Compute Single DES result dynamically
+  const singleDesResult: DesBlockResult | null = useMemo(() => {
+    if (cipherMethod === 'des') {
+      const bitStr = stringToBitString(inputText || 'CYBERSEC', 64);
+      const keyBitStr = hexToBitString(desKey, 64);
+      return processDesBlock(bitStr, keyBitStr, mode);
+    }
+    return null;
+  }, [cipherMethod, inputText, desKey, mode]);
+
+  // Compute 2DES result dynamically
+  const twoDesResult: TwoDesResult | null = useMemo(() => {
+    if (cipherMethod === '2des') {
+      return processTwoDes(inputText, twoDesKey1, twoDesKey2, mode);
+    }
+    return null;
+  }, [cipherMethod, inputText, twoDesKey1, twoDesKey2, mode]);
+
+  // Compute 3DES result dynamically
+  const threeDesResult: ThreeDesResult | null = useMemo(() => {
+    if (cipherMethod === '3des') {
+      return processThreeDes(inputText, threeDesKey1, threeDesKey2, threeDesKey3, mode);
+    }
+    return null;
+  }, [cipherMethod, inputText, threeDesKey1, threeDesKey2, threeDesKey3, mode]);
+
+  // Compute AES result dynamically
+  const aesResult: AesTextResult | null = useMemo(() => {
+    if (cipherMethod === 'aes') {
+      return processAes(inputText, aesKey, aesKeyBits, mode);
+    }
+    return null;
+  }, [cipherMethod, inputText, aesKey, aesKeyBits, mode]);
+
   // Compute output text dynamically
   const outputText = useMemo(() => {
+    if (cipherMethod === 'des' && singleDesResult) {
+      return singleDesResult.ciphertextHex;
+    }
+    if (cipherMethod === '2des' && twoDesResult) {
+      return twoDesResult.fullCipherHex;
+    }
+    if (cipherMethod === '3des' && threeDesResult) {
+      return threeDesResult.fullCipherHex;
+    }
+    if (cipherMethod === 'aes' && aesResult) {
+      return aesResult.fullCipherHex;
+    }
     if (['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && blockResult) {
       return blockResult.ciphertext;
     }
@@ -141,6 +214,10 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     playfairKey,
     hillMatrix,
     blockResult,
+    singleDesResult,
+    twoDesResult,
+    threeDesResult,
+    aesResult,
     mode,
     keyValidation.isValid,
     preserveSpaces,
@@ -176,69 +253,104 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Method Selection Bar */}
       {onCipherMethodChange && (
-        <div className="bg-white border border-zinc-300 rounded-3xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-5 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-xs font-mono-code uppercase tracking-[0.15em] text-[#FF3E00] font-bold flex items-center gap-2">
               <Sliders className="w-4 h-4" />
-              SELECT CIPHER ALGORITHM
+              SELECT CIPHER ALGORITHM ({Object.keys(CIPHER_METHODS).length} TOTAL)
             </span>
-            <span className="text-xs font-mono-code text-zinc-600 font-semibold px-3 py-1 bg-zinc-100 border border-zinc-300 rounded-full">
-              {currentMethodInfo.formula}
-            </span>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-[#0A0A0A] p-1 border border-[#262626] rounded-2xl">
+              {(
+                [
+                  { id: 'all', label: 'All (15)' },
+                  { id: 'modern', label: 'Modern (DES/2DES/3DES/AES)' },
+                  { id: 'monoalphabetic', label: 'Monoalphabetic (4)' },
+                  { id: 'polyalphabetic', label: 'Polyalphabetic (3)' },
+                  { id: 'block', label: 'Block Modes (5)' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setAlgorithmCategoryFilter(tab.id)}
+                  className={`px-3 py-1 text-xs font-mono-code font-bold rounded-xl whitespace-nowrap transition-all ${
+                    algorithmCategoryFilter === tab.id
+                      ? 'bg-[#FF3E00] text-white shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {(Object.keys(CIPHER_METHODS) as CipherMethod[]).map((methodKey) => {
-              const mInfo = CIPHER_METHODS[methodKey];
-              const isSelected = cipherMethod === methodKey;
-              return (
-                <button
-                  key={methodKey}
-                  onClick={() => onCipherMethodChange(methodKey)}
-                  className={`p-4 rounded-2xl text-left border transition-all duration-300 relative flex flex-col justify-between hover:scale-[1.02] ${
-                    isSelected
-                      ? 'bg-black text-white border-black shadow-md'
-                      : 'bg-zinc-50 border-zinc-300 hover:border-zinc-500'
-                  }`}
-                >
-                  {isSelected && (
-                    <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#FF3E00] animate-ping" />
-                  )}
-                  <div>
-                    <h4 className={`font-serif-display font-semibold text-sm ${isSelected ? 'text-white' : 'text-black'}`}>
-                      {mInfo.name}
-                    </h4>
-                    <p className={`text-[11px] font-mono-code font-bold mt-1 ${isSelected ? 'text-amber-400' : 'text-[#FF3E00]'}`}>
-                      {mInfo.formula}
+            {(Object.keys(CIPHER_METHODS) as CipherMethod[])
+              .filter(
+                (m) =>
+                  algorithmCategoryFilter === 'all' ||
+                  CIPHER_METHODS[m].category === algorithmCategoryFilter
+              )
+              .map((methodKey) => {
+                const mInfo = CIPHER_METHODS[methodKey];
+                const isSelected = cipherMethod === methodKey;
+                return (
+                  <button
+                    key={methodKey}
+                    onClick={() => onCipherMethodChange(methodKey)}
+                    className={`p-4 rounded-2xl text-left border transition-all duration-300 relative flex flex-col justify-between hover:scale-[1.02] ${
+                      isSelected
+                        ? 'bg-[#FF3E00] text-white border-[#FF3E00] shadow-md shadow-[#FF3E00]/20'
+                        : 'bg-[#0A0A0A] border-[#262626] hover:border-zinc-700'
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                    )}
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className={`text-[9px] font-mono-code uppercase font-bold px-2 py-0.5 rounded-md ${
+                          isSelected ? 'bg-black/30 text-white' : 'bg-[#181818] text-zinc-400'
+                        }`}>
+                          {mInfo.category}
+                        </span>
+                      </div>
+                      <h4 className="font-serif-display font-semibold text-sm text-white">
+                        {mInfo.name}
+                      </h4>
+                      <p className={`text-[11px] font-mono-code font-bold mt-1 ${isSelected ? 'text-amber-200' : 'text-[#FF3E00]'}`}>
+                        {mInfo.formula}
+                      </p>
+                    </div>
+                    <p className={`text-[11px] font-sans mt-2 line-clamp-2 ${isSelected ? 'text-zinc-100' : 'text-zinc-400'}`}>
+                      {mInfo.description}
                     </p>
-                  </div>
-                  <p className={`text-[11px] font-sans mt-2 line-clamp-2 ${isSelected ? 'text-zinc-300' : 'text-zinc-600'}`}>
-                    {mInfo.description}
-                  </p>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
 
       {/* Top Banner & Control Panel */}
-      <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md relative overflow-hidden space-y-6">
+      <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-6">
         {/* Accent top gradient line */}
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FF3E00] via-amber-500 to-[#FF3E00]" />
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-200">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#262626]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-black text-[#FF3E00] flex items-center justify-center font-mono-code font-bold text-lg shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-[#0A0A0A] border border-[#262626] text-[#FF3E00] flex items-center justify-center font-mono-code font-bold text-lg shadow-sm">
               🔑
             </div>
             <div>
               <span className="text-[10px] font-mono-code uppercase tracking-[0.2em] text-[#FF3E00] font-bold block">
                 CRYPTO STUDIO PIPELINE
               </span>
-              <h2 className="text-xl font-serif-display font-semibold text-black flex items-center gap-2">
+              <h2 className="text-xl font-serif-display font-semibold text-white flex items-center gap-2">
                 {currentMethodInfo.name}{' '}
-                <span className="text-xs font-mono-code font-normal text-zinc-500">
+                <span className="text-xs font-mono-code font-normal text-zinc-400">
                   (Category: {currentMethodInfo.category.toUpperCase()})
                 </span>
               </h2>
@@ -246,13 +358,13 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
           </div>
 
           {/* Mode Switcher Buttons */}
-          <div className="flex items-center gap-1 bg-zinc-100 p-1 border border-zinc-200 rounded-full self-start md:self-auto">
+          <div className="flex items-center gap-1 bg-[#0A0A0A] p-1 border border-[#262626] rounded-full self-start md:self-auto">
             <button
               onClick={() => setMode('encrypt')}
               className={`px-5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 ${
                 mode === 'encrypt'
-                  ? 'bg-black text-white shadow-md'
-                  : 'text-zinc-600 hover:text-black'
+                  ? 'bg-[#FF3E00] text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               🔒 Encrypt E(x)
@@ -261,8 +373,8 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
               onClick={() => setMode('decrypt')}
               className={`px-5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 ${
                 mode === 'decrypt'
-                  ? 'bg-black text-white shadow-md'
-                  : 'text-zinc-600 hover:text-black'
+                  ? 'bg-[#FF3E00] text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               🔓 Decrypt D(y)
@@ -270,7 +382,39 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
           </div>
         </div>
 
-        {/* Conditional Key Controls based on Cipher Method */}
+        {/* Conditional Modern Cipher & Block Key Controls */}
+        {['des', '2des', '3des'].includes(cipherMethod) && (
+          <TwoDesThreeDesStudio
+            method={cipherMethod as 'des' | '2des' | '3des'}
+            singleDesResult={singleDesResult}
+            twoDesResult={twoDesResult}
+            threeDesResult={threeDesResult}
+            key1={cipherMethod === 'des' ? desKey : cipherMethod === '2des' ? twoDesKey1 : threeDesKey1}
+            setKey1={cipherMethod === 'des' ? setDesKey : cipherMethod === '2des' ? setTwoDesKey1 : setThreeDesKey1}
+            key2={cipherMethod === '2des' ? twoDesKey2 : threeDesKey2}
+            setKey2={cipherMethod === '2des' ? setTwoDesKey2 : setThreeDesKey2}
+            key3={threeDesKey3}
+            setKey3={setThreeDesKey3}
+            mode={mode}
+            onSetCompatibleKeys={() => {
+              setThreeDesKey1('0123456789ABCDEF');
+              setThreeDesKey2('0123456789ABCDEF');
+              setThreeDesKey3('0123456789ABCDEF');
+            }}
+          />
+        )}
+
+        {cipherMethod === 'aes' && aesResult && (
+          <AesStudio
+            aesResult={aesResult}
+            aesKey={aesKey}
+            setAesKey={setAesKey}
+            aesKeyBits={aesKeyBits}
+            setAesKeyBits={setAesKeyBits}
+            mode={mode}
+          />
+        )}
+
         {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && (
           <div className="bg-[#0A0A0A] p-5 border border-emerald-500/40 rounded-2xl space-y-4">
             <div className="flex items-center justify-between">
@@ -652,7 +796,15 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
             <span>
               Active Formula: <strong className="text-white">{currentMethodInfo.name}</strong> ➔{' '}
               <span className="text-[#FF3E00] font-bold">
-                {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod)
+                {cipherMethod === 'des'
+                  ? `64-bit Feistel [16 Rounds] | Key: "${desKey}"`
+                  : cipherMethod === '2des'
+                  ? `C = E_{K2}(E_{K1}(P)) [K1: "${twoDesKey1}", K2: "${twoDesKey2}"]`
+                  : cipherMethod === '3des'
+                  ? `C = E_{K3}(D_{K2}(E_{K1}(P))) [EDE Mode | ${threeDesResult?.keyingOption || '3-Key'}]`
+                  : cipherMethod === 'aes'
+                  ? `128-bit State Matrix [${aesKeyBits}-bit Key / ${aesKeyBits === 128 ? 10 : aesKeyBits === 192 ? 12 : 14} Rounds]`
+                  : ['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod)
                   ? currentMethodInfo.formula
                   : cipherMethod === 'vigenere'
                   ? `C_i = (P_i + K_i) mod 26 [Key: "${vigenereKey}"]`
@@ -667,7 +819,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
                   : `E(x) = (${keyA}x + ${keyB}) mod 26`}
               </span>
             </span>
-            {!['ecb', 'cbc', 'cfb', 'ofb', 'ctr', 'vigenere', 'playfair', 'hill'].includes(cipherMethod) && (
+            {['caesar_default', 'caesar_custom', 'multiplicative', 'affine'].includes(cipherMethod) && (
               <>
                 <span className="text-zinc-600">|</span>
                 <span>
@@ -694,18 +846,18 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       {/* Main Text Input / Output Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Input Text Area */}
-        <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md flex flex-col h-full">
+        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-900 flex items-center gap-2">
+            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-white flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Plaintext Input' : 'Ciphertext Input'}</span>
-              <span className="text-zinc-500 font-normal">
+              <span className="text-zinc-400 font-normal">
                 ({inputText.length} chars)
               </span>
             </label>
 
             <button
               onClick={handleClear}
-              className="px-3 py-1 text-zinc-700 hover:text-black bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-xl text-xs font-mono-code uppercase tracking-wider flex items-center gap-1 transition-colors"
+              className="px-3 py-1 text-zinc-300 hover:text-white bg-[#0A0A0A] hover:bg-[#222222] border border-[#262626] rounded-xl text-xs font-mono-code uppercase tracking-wider flex items-center gap-1 transition-colors"
               title="Clear input"
             >
               <RotateCcw className="w-3 h-3" /> Clear
@@ -720,16 +872,16 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
                 ? 'TYPE MESSAGE TO ENCRYPT...'
                 : 'ENTER CIPHERTEXT TO DECRYPT...'
             }
-            className="w-full h-48 bg-zinc-50 text-black font-mono-code text-sm p-4 border border-zinc-300 focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
+            className="w-full h-48 bg-[#0A0A0A] text-white font-mono-code text-sm p-4 border border-[#262626] focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
           />
 
-          <div className="flex items-center justify-between mt-3 text-xs text-zinc-600 font-mono-code">
+          <div className="flex items-center justify-between mt-3 text-xs text-zinc-400 font-mono-code">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={preserveSpaces}
                 onChange={(e) => setPreserveSpaces(e.target.checked)}
-                className="accent-[#FF3E00] bg-zinc-100 border-zinc-300 rounded"
+                className="accent-[#FF3E00] bg-[#0A0A0A] border-[#262626] rounded"
               />
               <span>Preserve spaces & punctuation</span>
             </label>
@@ -741,32 +893,32 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         </div>
 
         {/* Output Text Area */}
-        <div className="bg-white border border-zinc-300 rounded-3xl p-6 shadow-md flex flex-col h-full">
+        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
-            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-900 flex items-center gap-2">
+            <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-white flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Ciphertext Result' : 'Plaintext Result'}</span>
             </label>
 
             <div className="flex items-center gap-2 font-mono-code">
               <button
                 onClick={handleSwap}
-                className="px-3.5 py-1.5 text-zinc-800 hover:text-black bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-xl text-xs uppercase flex items-center gap-1.5 transition-colors font-bold"
+                className="px-3.5 py-1.5 text-zinc-300 hover:text-white bg-[#0A0A0A] hover:bg-[#222222] border border-[#262626] rounded-xl text-xs uppercase flex items-center gap-1.5 transition-colors font-bold"
                 title="Swap Input & Output"
               >
-                <ArrowRightLeft className="w-3 h-3" /> Swap
+                <ArrowRightLeft className="w-3 h-3 text-[#FF3E00]" /> Swap
               </button>
               <button
                 onClick={handleCopy}
                 disabled={!outputText || outputText.startsWith('[ERROR')}
-                className="px-3.5 py-1.5 text-white bg-black hover:bg-[#FF3E00] disabled:bg-zinc-200 disabled:text-zinc-400 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                className="px-3.5 py-1.5 text-white bg-[#FF3E00] hover:bg-[#E03700] disabled:bg-[#222222] disabled:text-zinc-500 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
               >
-                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
                 {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
           </div>
 
-          <div className="w-full h-48 bg-zinc-900 text-[#FF3E00] font-mono-code text-sm p-4 border border-zinc-800 rounded-2xl overflow-y-auto whitespace-pre-wrap break-words select-all">
+          <div className="w-full h-48 bg-[#0A0A0A] text-[#FF3E00] font-mono-code text-sm p-4 border border-[#262626] rounded-2xl overflow-y-auto whitespace-pre-wrap break-words select-all">
             {outputText || (
               <span className="text-zinc-500 italic font-sans text-xs">
                 Output generated in real time...
@@ -774,26 +926,34 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-xs text-zinc-600 font-mono-code">
+          <div className="mt-3 flex items-center justify-between text-xs text-zinc-400 font-mono-code">
             <span>
-              {['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) ? (
+              {['des', '2des', '3des'].includes(cipherMethod) ? (
                 <>
-                  Mode: <strong className="text-emerald-600 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-900">"{blockKey}"</strong>
-                  {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && <> | IV: <strong className="text-cyan-600">"{blockIv}"</strong></>}
-                  {cipherMethod === 'ctr' && <> | Nonce: <strong className="text-pink-600">{blockNonce}</strong></>}
+                  Standard: <strong className="text-amber-400 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-200">"{cipherMethod === 'des' ? desKey : cipherMethod === '2des' ? `${twoDesKey1} ∥ ${twoDesKey2}` : `${threeDesKey1} ∥ ${threeDesKey2} ∥ ${threeDesKey3}`}"</strong>
+                </>
+              ) : cipherMethod === 'aes' ? (
+                <>
+                  Standard: <strong className="text-emerald-400 uppercase font-bold">AES-{aesKeyBits}</strong> | Key: <strong className="text-zinc-200">"{aesKey}"</strong>
+                </>
+              ) : ['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) ? (
+                <>
+                  Mode: <strong className="text-emerald-400 uppercase font-bold">{cipherMethod.toUpperCase()}</strong> | Key: <strong className="text-zinc-200">"{blockKey}"</strong>
+                  {['cbc', 'cfb', 'ofb'].includes(cipherMethod) && <> | IV: <strong className="text-cyan-400">"{blockIv}"</strong></>}
+                  {cipherMethod === 'ctr' && <> | Nonce: <strong className="text-pink-400">{blockNonce}</strong></>}
                 </>
               ) : cipherMethod === 'vigenere' ? (
-                <>Keyword: <strong className="text-sky-600">"{vigenereKey}"</strong></>
+                <>Keyword: <strong className="text-sky-400">"{vigenereKey}"</strong></>
               ) : cipherMethod === 'playfair' ? (
-                <>Key Phrase: <strong className="text-purple-600">"{playfairKey}"</strong></>
+                <>Key Phrase: <strong className="text-purple-400">"{playfairKey}"</strong></>
               ) : cipherMethod === 'hill' ? (
-                <>Matrix det(K): <strong className="text-emerald-600">{getHillDeterminant(hillMatrix)}</strong></>
+                <>Matrix det(K): <strong className="text-emerald-400">{getHillDeterminant(hillMatrix)}</strong></>
               ) : (
-                <>Keys: <strong className="text-zinc-900">a={keyA}, b={keyB}</strong></>
+                <>Keys: <strong className="text-zinc-200">a={keyA}, b={keyB}</strong></>
               )}
             </span>
             <span>
-              Action: <strong className="text-black uppercase">{mode}</strong>
+              Action: <strong className="text-white font-bold uppercase">{mode}</strong>
             </span>
           </div>
         </div>
@@ -885,7 +1045,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       )}
 
       {/* Step-by-Step Character Calculation Pipeline Vector */}
-      {inputText.length > 0 && keyValidation.isValid && !['ecb', 'cbc', 'cfb', 'ofb', 'ctr'].includes(cipherMethod) && (
+      {inputText.length > 0 && keyValidation.isValid && ['caesar_default', 'caesar_custom', 'multiplicative', 'affine'].includes(cipherMethod) && (
         <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between border-b border-[#262626] pb-3">
             <div>

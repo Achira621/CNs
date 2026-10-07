@@ -8,6 +8,19 @@ import {
   solveKnownPlaintext,
 } from '../utils/affineMath';
 import {
+  processDesBlock,
+  hexToBitString,
+  bitStringToHex,
+  twoDesEncryptHex,
+  threeDesEncryptHex,
+} from '../utils/desMath';
+import {
+  subBytes,
+  shiftRows,
+  bytesToState,
+  stateToHex,
+} from '../utils/aesMath';
+import {
   GraduationCap,
   BookOpen,
   ShieldAlert,
@@ -40,6 +53,16 @@ export const MasterclassLessonsTab: React.FC<MasterclassLessonsTabProps> = ({
   const [widgetEncoderInput, setWidgetEncoderInput] = useState('CRYPTO');
   const [widgetEncoderA, setWidgetEncoderA] = useState(5);
   const [widgetEncoderB, setWidgetEncoderB] = useState(8);
+
+  // Modern Cipher Widget States
+  const [wDesP, setWDesP] = useState('0123456789ABCDEF');
+  const [wDesKey, setWDesKey] = useState('133457799BBCDFF1');
+  const [w2DesK1, setW2DesK1] = useState('0123456789ABCDEF');
+  const [w2DesK2, setW2DesK2] = useState('FEDCBA9876543210');
+  const [w3DesK1, setW3DesK1] = useState('133457799BBCDFF1');
+  const [w3DesK2, setW3DesK2] = useState('133457799BBCDFF1');
+  const [w3DesK3, setW3DesK3] = useState('133457799BBCDFF1');
+  const [wAesHex, setWAesHex] = useState('00112233445566778899AABBCCDDEEFF');
 
   const activeLesson = MASTERCLASS_LESSONS.find((l) => l.id === activeLessonId) || MASTERCLASS_LESSONS[0];
 
@@ -266,6 +289,242 @@ export const MasterclassLessonsTab: React.FC<MasterclassLessonsTabProps> = ({
                       {encryptText(widgetEncoderInput, widgetEncoderA, widgetEncoderB, 26)}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Modern Widget 1: DES Feistel Round 1 Inspector */}
+              {sec.interactiveWidget === 'des-feistel' && (
+                <div className="mt-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl space-y-3 font-mono-code text-xs">
+                  <h4 className="text-xs font-bold text-[#FF3E00] uppercase tracking-wider">
+                    FEISTEL NETWORK ROUND 1 LIVE SPLIT (L₀, R₀ ➔ L₁, R₁)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-zinc-400 uppercase block mb-1">64-bit Plaintext (Hex):</label>
+                      <input
+                        type="text"
+                        maxLength={16}
+                        value={wDesP}
+                        onChange={(e) => setWDesP(e.target.value.toUpperCase())}
+                        className="w-full bg-[#141414] border border-[#333] px-2.5 py-1.5 text-white rounded-xl focus:border-[#FF3E00] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-amber-400 uppercase block mb-1">64-bit Key (Hex):</label>
+                      <input
+                        type="text"
+                        maxLength={16}
+                        value={wDesKey}
+                        onChange={(e) => setWDesKey(e.target.value.toUpperCase())}
+                        className="w-full bg-[#141414] border border-[#333] px-2.5 py-1.5 text-amber-400 rounded-xl focus:border-amber-400 outline-none"
+                      />
+                    </div>
+                  </div>
+                  {(() => {
+                    const cleanP = wDesP.padEnd(16, '0').slice(0, 16);
+                    const cleanK = wDesKey.padEnd(16, '0').slice(0, 16);
+                    const pBits = hexToBitString(cleanP, 64);
+                    const kBits = hexToBitString(cleanK, 64);
+                    const desRes = processDesBlock(pBits, kBits, 'encrypt');
+                    const r1 = desRes.rounds[0];
+                    return (
+                      <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                        <div className="flex justify-between text-zinc-300">
+                          <span>Initial Permutation IP(P):</span>
+                          <span className="text-white font-bold">{desRes.initialPermutationHex}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-zinc-400 pt-1 border-t border-[#262626]">
+                          <div>L₀: <strong className="text-sky-400">{r1.leftHex}</strong></div>
+                          <div>R₀: <strong className="text-amber-400">{r1.rightHex}</strong></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-zinc-400 pt-1 border-t border-[#262626]">
+                          <div>L₁ = R₀: <strong className="text-amber-400">{r1.rightHex}</strong></div>
+                          <div>R₁ = L₀ ⊕ F(R₀, K₁): <strong className="text-emerald-400">{r1.newRightHex}</strong></div>
+                        </div>
+                        <div className="text-[10px] text-zinc-500 pt-1 truncate">
+                          Final 16-Round DES Ciphertext: <span className="text-[#FF3E00] font-bold">{desRes.ciphertextHex}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Modern Widget 2: 2DES Meet-in-the-Middle Visualizer */}
+              {sec.interactiveWidget === '2des-mitm' && (
+                <div className="mt-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl space-y-3 font-mono-code text-xs">
+                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    2DES CASCADING STAGE & MITM BRIDGE (C = E_K2(E_K1(P)))
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-amber-400 uppercase block mb-1">Key 1 (64-bit Hex):</label>
+                      <input
+                        type="text"
+                        maxLength={16}
+                        value={w2DesK1}
+                        onChange={(e) => setW2DesK1(e.target.value.toUpperCase())}
+                        className="w-full bg-[#141414] border border-[#333] px-2.5 py-1.5 text-amber-400 rounded-xl outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-sky-400 uppercase block mb-1">Key 2 (64-bit Hex):</label>
+                      <input
+                        type="text"
+                        maxLength={16}
+                        value={w2DesK2}
+                        onChange={(e) => setW2DesK2(e.target.value.toUpperCase())}
+                        className="w-full bg-[#141414] border border-[#333] px-2.5 py-1.5 text-sky-400 rounded-xl outline-none"
+                      />
+                    </div>
+                  </div>
+                  {(() => {
+                    const cleanP = '0123456789ABCDEF';
+                    const res = twoDesEncryptHex(cleanP, w2DesK1.padEnd(16, '0').slice(0, 16), w2DesK2.padEnd(16, '0').slice(0, 16));
+                    return (
+                      <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                        <div className="flex justify-between text-zinc-300">
+                          <span>Input P:</span>
+                          <span className="text-white font-bold">{cleanP}</span>
+                        </div>
+                        <div className="flex justify-between text-amber-400">
+                          <span>Stage 1: M = E_K1(P):</span>
+                          <span className="font-bold">{res.intermediate}</span>
+                        </div>
+                        <div className="flex justify-between text-sky-400">
+                          <span>Stage 2: C = E_K2(M):</span>
+                          <span className="font-bold">{res.ciphertext}</span>
+                        </div>
+                        <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-[11px] text-rose-300 font-sans leading-relaxed">
+                          MITM Vulnerability: Precomputing E_K1(P) in table and looking up D_K2(C) requires only <strong>2⁵⁷ operations</strong> (2 × 2⁵⁶) rather than 2¹¹²!
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Modern Widget 3: 3DES EDE Mode & Backward Compatibility */}
+              {sec.interactiveWidget === '3des-ede' && (
+                <div className="mt-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl space-y-3 font-mono-code text-xs">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                      3DES EDE PIPELINE & BACKWARD COMPATIBILITY
+                    </h4>
+                    <button
+                      onClick={() => {
+                        setW3DesK2(w3DesK1);
+                        setW3DesK3(w3DesK1);
+                      }}
+                      className="text-[10px] text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-500/30 transition-colors"
+                    >
+                      Test K1=K2=K3
+                    </button>
+                  </div>
+                  {(() => {
+                    const cleanP = '0123456789ABCDEF';
+                    const k1 = w3DesK1.padEnd(16, '0').slice(0, 16);
+                    const k2 = w3DesK2.padEnd(16, '0').slice(0, 16);
+                    const k3 = w3DesK3.padEnd(16, '0').slice(0, 16);
+                    const res = threeDesEncryptHex(cleanP, k1, k2, k3);
+                    const isCompat = k1 === k2;
+                    return (
+                      <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                        <div className="flex justify-between text-zinc-300">
+                          <span>Stage 1 E_K1(P):</span>
+                          <span className="text-amber-400 font-bold">{res.stage1}</span>
+                        </div>
+                        <div className="flex justify-between text-zinc-300">
+                          <span>Stage 2 D_K2(Stage 1):</span>
+                          <span className="text-sky-400 font-bold">{res.stage2}</span>
+                        </div>
+                        <div className="flex justify-between text-zinc-300">
+                          <span>Stage 3 E_K3(Stage 2):</span>
+                          <span className="text-emerald-400 font-bold">{res.ciphertext}</span>
+                        </div>
+                        <div className={`p-2 rounded text-[11px] font-sans leading-relaxed border ${
+                          isCompat ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-[#181818] border-[#333] text-zinc-400'
+                        }`}>
+                          {isCompat ? (
+                            <span>✓ <strong>Backward Compatibility Active:</strong> D_K2(E_K1(P)) = P because K1 = K2. The entire 3DES simplifies to single DES with K3!</span>
+                          ) : (
+                            <span>When K1 ≠ K2, 3DES provides full triple-stage Feistel security with 112-bit effective MITM resistance.</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* Modern Widget 4: AES 4x4 State Matrix & SubBytes */}
+              {sec.interactiveWidget === 'aes-state' && (
+                <div className="mt-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl space-y-3 font-mono-code text-xs">
+                  <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                    AES 4×4 STATE MATRIX: SUBBYTES & SHIFTROWS DEMO
+                  </h4>
+                  <div>
+                    <label className="text-[10px] text-zinc-400 uppercase block mb-1">16-Byte Input (32 Hex Digits):</label>
+                    <input
+                      type="text"
+                      maxLength={32}
+                      value={wAesHex}
+                      onChange={(e) => setWAesHex(e.target.value.toUpperCase())}
+                      className="w-full bg-[#141414] border border-[#333] px-2.5 py-1.5 text-cyan-300 rounded-xl outline-none"
+                    />
+                  </div>
+                  {(() => {
+                    const cleanHex = wAesHex.padEnd(32, '0').slice(0, 32);
+                    const bytes: number[] = [];
+                    for (let i = 0; i < 32; i += 2) {
+                      bytes.push(parseInt(cleanHex.substring(i, i + 2), 16) || 0);
+                    }
+                    const state0 = bytesToState(bytes);
+                    const stateSub = subBytes(state0);
+                    const stateShift = shiftRows(stateSub);
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                          <span className="text-[10px] text-zinc-400 font-bold uppercase block">1. Initial State</span>
+                          <div className="grid grid-cols-4 gap-1 text-center font-bold text-[11px] text-white">
+                            {state0.map((r, ri) =>
+                              r.map((c, ci) => (
+                                <div key={`${ri}-${ci}`} className="p-1 bg-[#0A0A0A] rounded">
+                                  {c.toString(16).padStart(2, '0').toUpperCase()}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                          <span className="text-[10px] text-cyan-400 font-bold uppercase block">2. SubBytes (S-Box)</span>
+                          <div className="grid grid-cols-4 gap-1 text-center font-bold text-[11px] text-cyan-300">
+                            {stateSub.map((r, ri) =>
+                              r.map((c, ci) => (
+                                <div key={`${ri}-${ci}`} className="p-1 bg-[#0A0A0A] rounded">
+                                  {c.toString(16).padStart(2, '0').toUpperCase()}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-[#141414] border border-[#333] rounded-xl space-y-2">
+                          <span className="text-[10px] text-amber-400 font-bold uppercase block">3. ShiftRows</span>
+                          <div className="grid grid-cols-4 gap-1 text-center font-bold text-[11px] text-amber-300">
+                            {stateShift.map((r, ri) =>
+                              r.map((c, ci) => (
+                                <div key={`${ri}-${ci}`} className="p-1 bg-[#0A0A0A] rounded">
+                                  {c.toString(16).padStart(2, '0').toUpperCase()}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>

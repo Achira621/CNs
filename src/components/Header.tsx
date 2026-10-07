@@ -46,11 +46,11 @@ export const Header: React.FC<HeaderProps> = ({
   ] as const;
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-zinc-200 text-zinc-900 shadow-sm">
+    <header className="sticky top-0 z-30 bg-[#0A0A0E]/90 backdrop-blur-xl border-b border-[#262626] text-zinc-100 shadow-xl">
       {/* Sliding Marquee Animation Header Ticker */}
       <div
         onClick={onGoToHero}
-        className="bg-black border-b border-zinc-800 py-1.5 overflow-hidden relative cursor-pointer hover:bg-zinc-900 transition-colors group"
+        className="bg-black border-b border-[#262626] py-1.5 overflow-hidden relative cursor-pointer hover:bg-zinc-900 transition-colors group"
         title="Click to view Project Credits & Hero Landing Page"
       >
         <div className="animate-marquee whitespace-nowrap flex items-center gap-8 font-mono-code text-[11px] text-zinc-200">
@@ -60,25 +60,25 @@ export const Header: React.FC<HeaderProps> = ({
                 <Building2 className="w-3 h-3 text-amber-400" />
                 VIDYALANKAR INSTITUTE OF TECHNOLOGY
               </span>
-              <span className="text-zinc-500">•</span>
+              <span className="text-zinc-600">•</span>
               <span className="text-zinc-300">CYBERSECURITY PRACTICAL</span>
-              <span className="text-zinc-500">•</span>
+              <span className="text-zinc-600">•</span>
               <span className="text-amber-300 font-semibold">
                 CONDUCTED BY PROF. VINITA BHANDIWAD
               </span>
-              <span className="text-zinc-500">•</span>
+              <span className="text-zinc-600">•</span>
               <span className="text-white font-bold">
                 PROJECT BY: VARAD DALVI (24101B0040)
               </span>
-              <span className="text-zinc-500">|</span>
+              <span className="text-zinc-600">|</span>
               <span className="text-white font-bold">
                 OMKAR BENGALI (24101B0043)
               </span>
-              <span className="text-zinc-500">|</span>
+              <span className="text-zinc-600">|</span>
               <span className="text-white font-bold">
                 SUMIT SURWASE (24101B0022)
               </span>
-              <span className="text-zinc-500">•</span>
+              <span className="text-zinc-600">•</span>
             </React.Fragment>
           ))}
         </div>
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-3.5">
             <button
               onClick={onGoToHero}
-              className="w-11 h-11 bg-black text-white border border-black rounded-[1.1rem] flex items-center justify-center shadow-md hover:bg-[#FF3E00] transition-colors group"
+              className="w-11 h-11 bg-[#141414] text-white border border-[#262626] rounded-[1.1rem] flex items-center justify-center shadow-md hover:bg-[#FF3E00] transition-colors group"
               title="Return to Hero Welcome Page"
             >
               <KeyRound className="w-5 h-5 stroke-[2.2] group-hover:rotate-12 transition-transform text-[#FF3E00] group-hover:text-white" />
@@ -100,19 +100,19 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[10px] font-mono-code uppercase tracking-[0.2em] text-[#FF3E00] font-bold">
                   VIDYALANKAR TECH
                 </span>
-                <span className="text-zinc-300">|</span>
+                <span className="text-zinc-600">|</span>
                 <span className="px-2 py-0.5 text-[9px] font-mono-code font-bold uppercase tracking-wider bg-[#FF3E00]/10 text-[#FF3E00] border border-[#FF3E00]/30 rounded-full">
                   CYBERSECURITY LAB
                 </span>
               </div>
-              <h1 className="font-serif-display font-semibold text-lg sm:text-xl tracking-tight text-black leading-tight flex items-center gap-2">
-                Classical Cryptography <span className="italic font-normal text-zinc-500">Masterclass</span>
+              <h1 className="font-serif-display font-semibold text-lg sm:text-xl tracking-tight text-white leading-tight flex items-center gap-2">
+                Classical Cryptography <span className="italic font-normal text-zinc-400">Masterclass</span>
               </h1>
             </div>
           </div>
 
           {/* Navigation Tabs - Rounded Pill Design */}
-          <nav className="hidden lg:flex items-center gap-1 bg-zinc-100 p-1.5 border border-zinc-200 rounded-full shadow-inner">
+          <nav className="hidden lg:flex items-center gap-1 bg-[#141414] p-1.5 border border-[#262626] rounded-full shadow-inner">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -122,8 +122,8 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`flex items-center gap-2 px-4 py-2 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 ${
                     isActive
-                      ? 'bg-black text-white shadow-md'
-                      : 'text-zinc-600 hover:text-black hover:bg-zinc-200'
+                      ? 'bg-[#FF3E00] text-white shadow-md shadow-[#FF3E00]/20'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#1F1F1F]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -139,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
             {onOpenTreeMenu && (
               <button
                 onClick={onOpenTreeMenu}
-                className="px-3.5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-zinc-100 hover:bg-black hover:text-white text-[#FF3E00] border border-[#FF3E00]/40 rounded-[0.9rem] transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#141414] hover:bg-[#FF3E00] hover:text-white text-[#FF3E00] border border-[#FF3E00]/40 rounded-[0.9rem] transition-all flex items-center gap-1.5 shadow-sm"
                 title="Open Interactive Cipher Taxonomy Tree Menu"
               >
                 <GitFork className="w-3.5 h-3.5" />
@@ -151,10 +151,10 @@ export const Header: React.FC<HeaderProps> = ({
             {onGoToHero && (
               <button
                 onClick={onGoToHero}
-                className="px-3 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300 rounded-[0.9rem] transition-all flex items-center gap-1.5"
+                className="px-3 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#141414] hover:bg-[#222222] text-zinc-300 border border-[#262626] rounded-[0.9rem] transition-all flex items-center gap-1.5"
                 title="View Hero & Project Credits"
               >
-                <Home className="w-3.5 h-3.5 text-zinc-600" />
+                <Home className="w-3.5 h-3.5 text-zinc-400" />
                 <span className="hidden sm:inline">Hero</span>
               </button>
             )}
@@ -165,8 +165,8 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onToggleCursor}
                 className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-[0.9rem] text-xs font-mono-code font-bold border transition-all ${
                   cursorEnabled
-                    ? 'bg-black text-amber-400 border-black shadow-sm'
-                    : 'bg-zinc-100 text-zinc-500 border-zinc-200 hover:text-zinc-900'
+                    ? 'bg-[#141414] text-amber-400 border-amber-500/40 shadow-sm'
+                    : 'bg-[#141414] text-zinc-500 border-[#262626] hover:text-zinc-300'
                 }`}
                 title="Toggle custom Key cursor"
               >
@@ -177,14 +177,14 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={onOpenPresets}
-              className="px-3.5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300 rounded-[0.9rem] transition-all"
+              className="px-3.5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#141414] hover:bg-[#222222] text-zinc-300 border border-[#262626] rounded-[0.9rem] transition-all"
             >
               Presets
             </button>
 
             <button
               onClick={onOpenAITutor}
-              className="px-4 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#FF3E00] hover:bg-black text-white rounded-[0.9rem] transition-all flex items-center gap-2 shadow-md shadow-[#FF3E00]/20"
+              className="px-4 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#FF3E00] hover:bg-[#E03700] text-white rounded-[0.9rem] transition-all flex items-center gap-2 shadow-md shadow-[#FF3E00]/20"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-pulse" />
               <span>AI Tutor</span>
@@ -193,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile / Tablet Navigation Tabs */}
-        <div className="lg:hidden flex items-center justify-between gap-1 pb-3 overflow-x-auto no-scrollbar border-t border-zinc-200 pt-2">
+        <div className="lg:hidden flex items-center justify-between gap-1 pb-3 overflow-x-auto no-scrollbar border-t border-[#262626] pt-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -203,8 +203,8 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-mono-code uppercase tracking-wider font-bold whitespace-nowrap rounded-xl transition-all ${
                   isActive
-                    ? 'bg-black text-white shadow-md'
-                    : 'text-zinc-600 hover:bg-zinc-200'
+                    ? 'bg-[#FF3E00] text-white shadow-md'
+                    : 'text-zinc-400 hover:bg-[#141414]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />

@@ -14,8 +14,10 @@ import {
   isHillKeyValid,
   HillMatrixKey,
 } from '../utils/polyMath';
-import { Calculator, Sparkles, HelpCircle, ArrowRight, Sliders, Layers, Grid, Binary } from 'lucide-react';
+import { Calculator, Sparkles, HelpCircle, ArrowRight, Sliders, Layers, Grid, Binary, Shield, Lock, Cpu } from 'lucide-react';
 import { CipherMethod } from '../types';
+import { gfMul, xtime, AES_SBOX } from '../utils/aesMath';
+import { desEncryptHex, desDecryptHex, twoDesEncryptHex, threeDesEncryptHex } from '../utils/desMath';
 
 interface MathVisualizerTabProps {
   cipherMethod?: CipherMethod;
@@ -49,7 +51,18 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
   onOpenAITutorWithPrompt,
 }) => {
   const [hoveredCharIndex, setHoveredCharIndex] = useState<number | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'clock' | 'vigenere' | 'playfair' | 'hill' | 'block' | 'euclid' | 'heatmap'>('clock');
+  const [selectedTab, setSelectedTab] = useState<'clock' | 'vigenere' | 'playfair' | 'hill' | 'block' | 'euclid' | 'heatmap' | 'twodes' | 'aes'>('clock');
+
+  // 2DES/3DES Math Explorer states
+  const [feistelP, setFeistelP] = useState('0123456789ABCDEF');
+  const [feistelK1, setFeistelK1] = useState('133457799BBCDFF1');
+  const [feistelK2, setFeistelK2] = useState('A1B2C3D4E5F60718');
+  const [feistelK3, setFeistelK3] = useState('133457799BBCDFF1');
+
+  // AES GF(2^8) Explorer states
+  const [gfByteA, setGfByteA] = useState('57');
+  const [gfByteB, setGfByteB] = useState('13');
+  const [sboxHoverByte, setSboxHoverByte] = useState<number | null>(0x53);
 
   const currentMethodInfo = CIPHER_METHODS[cipherMethod] || CIPHER_METHODS.affine;
   const validAs = useMemo(() => getValidKeysA(26), []);
@@ -157,6 +170,26 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
               }`}
             >
               ⚡ Block Cipher Modes
+            </button>
+            <button
+              onClick={() => setSelectedTab('twodes')}
+              className={`px-3.5 py-1.5 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 whitespace-nowrap ${
+                selectedTab === 'twodes'
+                  ? 'bg-amber-500 text-black font-extrabold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              🛡️ 2DES/3DES Feistel
+            </button>
+            <button
+              onClick={() => setSelectedTab('aes')}
+              className={`px-3.5 py-1.5 text-xs font-mono-code uppercase tracking-wider font-bold rounded-full transition-all duration-300 whitespace-nowrap ${
+                selectedTab === 'aes'
+                  ? 'bg-cyan-500 text-black font-extrabold shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              🔮 AES Galois GF(2⁸)
             </button>
             <button
               onClick={() => setSelectedTab('euclid')}
@@ -267,7 +300,10 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
 
           <div className="overflow-x-auto">
             <div className="inline-block min-w-full">
-              <div className="grid grid-cols-27 gap-0.5 text-[10px] font-mono-code text-center select-none">
+              <div
+                className="grid gap-0.5 text-[10px] font-mono-code text-center select-none"
+                style={{ gridTemplateColumns: 'repeat(27, minmax(24px, 1fr))' }}
+              >
                 <div className="p-1 font-bold bg-[#0A0A0A] text-sky-400">P \ K</div>
                 {Array.from({ length: 26 }).map((_, cIdx) => (
                   <div key={cIdx} className="p-1 font-bold bg-[#0A0A0A] text-sky-400">
@@ -285,7 +321,7 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
                         return (
                           <div
                             key={cIdx}
-                            className="p-1 bg-[#0A0A0A] text-zinc-400 hover:bg-sky-500 hover:text-black hover:font-bold transition-colors"
+                            className="p-1 bg-[#0A0A0A] text-zinc-400 hover:bg-sky-500 hover:text-white hover:font-bold transition-colors"
                           >
                             {resChar}
                           </div>
@@ -772,7 +808,10 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
 
           <div className="overflow-x-auto">
             <div className="inline-block min-w-full">
-              <div className="grid grid-cols-27 gap-0.5 text-[10px] font-mono-code text-center select-none">
+              <div
+                className="grid gap-0.5 text-[10px] font-mono-code text-center select-none"
+                style={{ gridTemplateColumns: 'repeat(27, minmax(24px, 1fr))' }}
+              >
                 {/* Header Row */}
                 <div className="p-1 font-bold bg-[#0A0A0A] text-zinc-600">a \ x</div>
                 {Array.from({ length: 26 }).map((_, col) => (
@@ -829,6 +868,317 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
                     </React.Fragment>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* SUB-TAB 4: 2DES & 3DES Feistel Architecture */}
+      {selectedTab === 'twodes' && (
+        <div className="space-y-6">
+          <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-6">
+            <div className="border-b border-[#262626] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-mono-code font-bold text-amber-400 uppercase tracking-[0.15em] flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-amber-400" />
+                  <span>2DES & 3DES MULTI-STAGE CASCADING PIPELINE</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1 font-sans">
+                  Feistel cipher block transforms: 64-bit blocks with 16 Feistel rounds and cascading encryption stages.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono-code px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-full font-bold">
+                FIPS PUB 46-3 & ANSI X9.52
+              </span>
+            </div>
+
+            {/* Live Pipeline Parameter Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl font-mono-code text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-400 uppercase font-bold">Plaintext (64-bit Hex):</label>
+                <input
+                  type="text"
+                  maxLength={16}
+                  value={feistelP}
+                  onChange={(e) => setFeistelP(e.target.value.toUpperCase())}
+                  className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-white rounded-xl focus:border-amber-400 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-amber-400 uppercase font-bold">Key 1 (64-bit Hex):</label>
+                <input
+                  type="text"
+                  maxLength={16}
+                  value={feistelK1}
+                  onChange={(e) => setFeistelK1(e.target.value.toUpperCase())}
+                  className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-amber-400 rounded-xl focus:border-amber-400 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-sky-400 uppercase font-bold">Key 2 (64-bit Hex):</label>
+                <input
+                  type="text"
+                  maxLength={16}
+                  value={feistelK2}
+                  onChange={(e) => setFeistelK2(e.target.value.toUpperCase())}
+                  className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-sky-400 rounded-xl focus:border-sky-400 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] text-emerald-400 uppercase font-bold">Key 3 (3DES Stage 3):</label>
+                <input
+                  type="text"
+                  maxLength={16}
+                  value={feistelK3}
+                  onChange={(e) => setFeistelK3(e.target.value.toUpperCase())}
+                  className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-emerald-400 rounded-xl focus:border-emerald-400 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Calculations */}
+            {(() => {
+              const cleanP = feistelP.padEnd(16, '0').slice(0, 16);
+              const cleanK1 = feistelK1.padEnd(16, '0').slice(0, 16);
+              const cleanK2 = feistelK2.padEnd(16, '0').slice(0, 16);
+              const cleanK3 = feistelK3.padEnd(16, '0').slice(0, 16);
+
+              const singleDes = desEncryptHex(cleanP, cleanK1);
+              const twoDesRes = twoDesEncryptHex(cleanP, cleanK1, cleanK2);
+              const threeDesRes = threeDesEncryptHex(cleanP, cleanK1, cleanK2, cleanK3);
+              const isBackwardCompat = cleanK1 === cleanK2 && cleanK2 === cleanK3;
+
+              return (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* 2DES Diagram & Equations */}
+                  <div className="bg-[#0A0A0A] border border-[#262626] rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono-code font-bold text-amber-400 uppercase">
+                        2DES CASCADING PIPELINE
+                      </span>
+                      <span className="text-[10px] font-mono-code text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
+                        VULNERABLE (MITM)
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-[#141414] border border-[#333] rounded-xl text-xs font-mono-code space-y-2">
+                      <div className="text-zinc-400">Formula: <span className="text-white font-bold">C = E_K2( E_K1(P) )</span></div>
+                      <div className="flex items-center justify-between text-zinc-300">
+                        <span>P (Input):</span>
+                        <span className="font-bold text-white">{cleanP}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-amber-400">
+                        <span>Stage 1 M = E_K1(P):</span>
+                        <span className="font-bold">{twoDesRes.intermediate}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sky-400">
+                        <span>Stage 2 C = E_K2(M):</span>
+                        <span className="font-bold">{twoDesRes.ciphertext}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl text-xs text-zinc-300 space-y-1">
+                      <strong className="text-amber-400 block font-mono-code">Why 2DES does NOT give 112-bit security:</strong>
+                      <p className="text-[11px] font-sans leading-relaxed text-zinc-400">
+                        An attacker knows (P, C). They compute table of <span className="text-amber-300 font-mono-code">E_K1(P)</span> for all 2⁵⁶ keys K1, and look up matching <span className="text-sky-300 font-mono-code">D_K2(C)</span> for candidate keys K2. Match indicates the correct (K1, K2) pair in only <strong>2⁵⁷ operations</strong> instead of 2¹¹²!
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 3DES Diagram & Equations */}
+                  <div className="bg-[#0A0A0A] border border-[#262626] rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono-code font-bold text-emerald-400 uppercase">
+                        3DES (EDE) PIPELINE
+                      </span>
+                      <button
+                        onClick={() => {
+                          setFeistelK2(feistelK1);
+                          setFeistelK3(feistelK1);
+                        }}
+                        className="text-[10px] font-mono-code text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 px-2 py-0.5 rounded border border-cyan-500/30 transition-colors"
+                      >
+                        Set K1 = K2 = K3
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-[#141414] border border-[#333] rounded-xl text-xs font-mono-code space-y-2">
+                      <div className="text-zinc-400">Formula: <span className="text-white font-bold">C = E_K3( D_K2( E_K1(P) ) )</span></div>
+                      <div className="flex items-center justify-between text-zinc-300">
+                        <span>Stage 1 E_K1(P):</span>
+                        <span className="font-bold text-amber-400">{threeDesRes.stage1}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-zinc-300">
+                        <span>Stage 2 D_K2(Stage 1):</span>
+                        <span className="font-bold text-sky-400">{threeDesRes.stage2}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-zinc-300">
+                        <span>Stage 3 E_K3(Stage 2):</span>
+                        <span className="font-bold text-emerald-400">{threeDesRes.ciphertext}</span>
+                      </div>
+                    </div>
+
+                    <div className={`p-3 rounded-xl text-xs space-y-1 border ${
+                      isBackwardCompat ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-[#141414] border-[#333] text-zinc-300'
+                    }`}>
+                      <strong className="block font-mono-code">
+                        {isBackwardCompat ? '✓ Backward Compatibility Active!' : 'Backward Compatibility Feature (EDE):'}
+                      </strong>
+                      <p className="text-[11px] font-sans leading-relaxed text-zinc-400">
+                        When K1 = K2, Stage 2 Decryption perfectly cancels Stage 1 Encryption: <span className="font-mono-code text-white">D_K1(E_K1(P)) = P</span>. The entire pipeline reduces to standard Single DES: <span className="font-mono-code text-emerald-400">E_K3(P) = {singleDes}</span>!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* SUB-TAB 5: AES Galois Field GF(2^8) and S-Box Matrix */}
+      {selectedTab === 'aes' && (
+        <div className="space-y-6">
+          <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-6">
+            <div className="border-b border-[#262626] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-mono-code font-bold text-cyan-400 uppercase tracking-[0.15em] flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-400" />
+                  <span>AES GALOIS FIELD GF(2⁸) ARITHMETIC & RIJNDAEL S-BOX</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1 font-sans">
+                  Arithmetic modulo irreducible polynomial m(x) = x⁸ + x⁴ + x³ + x + 1 (0x11B) and non-linear S-Box mappings.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono-code px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 rounded-full font-bold">
+                NIST FIPS 197 Standard
+              </span>
+            </div>
+
+            {/* Interactive GF(2^8) Multiplier */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1 bg-[#0A0A0A] border border-[#262626] rounded-2xl p-5 space-y-4">
+                <span className="text-xs font-mono-code font-bold text-cyan-400 uppercase block">
+                  GF(2⁸) POLYNOMIAL MULTIPLIER
+                </span>
+                <p className="text-xs text-zinc-400 font-sans">
+                  Multiplies two bytes as polynomials in GF(2)[x] modulo x⁸ + x⁴ + x³ + x + 1 using xtime.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 font-mono-code text-xs">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-400 uppercase font-bold">Byte A (Hex):</label>
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={gfByteA}
+                      onChange={(e) => setGfByteA(e.target.value.toUpperCase())}
+                      className="w-full bg-[#141414] border border-[#333] px-3 py-2 text-cyan-300 font-bold rounded-xl focus:border-cyan-400 outline-none text-center text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-400 uppercase font-bold">Byte B (Hex):</label>
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={gfByteB}
+                      onChange={(e) => setGfByteB(e.target.value.toUpperCase())}
+                      className="w-full bg-[#141414] border border-[#333] px-3 py-2 text-cyan-300 font-bold rounded-xl focus:border-cyan-400 outline-none text-center text-sm"
+                    />
+                  </div>
+                </div>
+
+                {(() => {
+                  const intA = parseInt(gfByteA || '0', 16) & 0xff;
+                  const intB = parseInt(gfByteB || '0', 16) & 0xff;
+                  const prod = gfMul(intA, intB);
+                  const xtimeA = xtime(intA);
+
+                  return (
+                    <div className="p-4 bg-[#141414] border border-[#333] rounded-xl font-mono-code text-xs space-y-2">
+                      <div className="flex justify-between text-zinc-300">
+                        <span>A: 0x{intA.toString(16).padStart(2, '0').toUpperCase()}</span>
+                        <span className="text-zinc-500">{intA.toString(2).padStart(8, '0')}₂</span>
+                      </div>
+                      <div className="flex justify-between text-zinc-300">
+                        <span>B: 0x{intB.toString(16).padStart(2, '0').toUpperCase()}</span>
+                        <span className="text-zinc-500">{intB.toString(2).padStart(8, '0')}₂</span>
+                      </div>
+                      <div className="flex justify-between text-amber-400 pt-1 border-t border-[#262626]">
+                        <span>xtime(A) = A · 0x02:</span>
+                        <span className="font-bold">0x{xtimeA.toString(16).padStart(2, '0').toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between text-cyan-400 font-bold text-sm pt-1 border-t border-[#262626]">
+                        <span>A ⊗ B mod 0x11B:</span>
+                        <span className="text-white bg-cyan-600/30 px-2 py-0.5 rounded">0x{prod.toString(16).padStart(2, '0').toUpperCase()}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="text-[11px] text-zinc-400 font-sans leading-relaxed bg-[#141414] p-3 rounded-xl border border-[#222]">
+                  <strong className="text-cyan-400 font-mono-code">MixColumns Matrix:</strong>
+                  In AES MixColumns, each column is multiplied by the constant matrix with entries <span className="font-mono-code text-white">0x02, 0x03, 0x01, 0x01</span> in GF(2⁸).
+                </div>
+              </div>
+
+              {/* AES S-Box 16x16 Interactive Matrix */}
+              <div className="lg:col-span-2 bg-[#0A0A0A] border border-[#262626] rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono-code font-bold text-cyan-400 uppercase">
+                    AES RIJNDAEL S-BOX (16×16 LOOKUP TABLE)
+                  </span>
+                  {sboxHoverByte !== null && (
+                    <span className="text-xs font-mono-code text-white">
+                      Byte <strong className="text-amber-400">0x{sboxHoverByte.toString(16).padStart(2, '0').toUpperCase()}</strong> ➔ S-Box = <strong className="text-cyan-400">0x{AES_SBOX[sboxHoverByte].toString(16).padStart(2, '0').toUpperCase()}</strong>
+                    </span>
+                  )}
+                </div>
+
+                <div className="overflow-x-auto">
+                  <div
+                    className="grid gap-0.5 text-[9px] font-mono-code text-center select-none"
+                    style={{ gridTemplateColumns: 'repeat(17, minmax(20px, 1fr))' }}
+                  >
+                    <div className="p-1 font-bold bg-[#141414] text-zinc-600">y \ x</div>
+                    {Array.from({ length: 16 }).map((_, c) => (
+                      <div key={c} className="p-1 font-bold bg-[#141414] text-cyan-400">
+                        {c.toString(16).toUpperCase()}
+                      </div>
+                    ))}
+
+                    {Array.from({ length: 16 }).map((_, r) => (
+                      <React.Fragment key={r}>
+                        <div className="p-1 font-bold bg-[#141414] text-amber-400">
+                          {r.toString(16).toUpperCase()}
+                        </div>
+                        {Array.from({ length: 16 }).map((_, c) => {
+                          const byteVal = r * 16 + c;
+                          const sboxVal = AES_SBOX[byteVal];
+                          const isHovered = sboxHoverByte === byteVal;
+                          return (
+                            <div
+                              key={c}
+                              onMouseEnter={() => setSboxHoverByte(byteVal)}
+                              className={`p-1 transition-colors cursor-pointer rounded-sm ${
+                                isHovered
+                                  ? 'bg-cyan-500 text-black font-extrabold shadow-sm'
+                                  : 'bg-[#121212] text-zinc-300 hover:bg-[#202020]'
+                              }`}
+                              title={`Input: 0x${byteVal.toString(16).padStart(2, '0').toUpperCase()} -> SBox: 0x${sboxVal.toString(16).padStart(2, '0').toUpperCase()}`}
+                            >
+                              {sboxVal.toString(16).padStart(2, '0').toUpperCase()}
+                            </div>
+                          );
+                        })}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#141414] border border-[#262626] rounded-xl text-xs text-zinc-400 font-sans leading-relaxed">
+                  <strong className="text-white font-mono-code">S-Box Construction:</strong> Each byte is mapped to its multiplicative inverse in <span className="font-mono-code text-cyan-300">GF(2⁸)</span> (with 0 mapped to 0), followed by an affine transformation over <span className="font-mono-code text-cyan-300">GF(2)</span> with constant vector <span className="font-mono-code text-amber-300">0x63</span> to prevent fixed-point and linear attacks.
+                </div>
               </div>
             </div>
           </div>

@@ -6,8 +6,10 @@ import {
   ENGLISH_FREQUENCIES,
   CIPHER_METHODS,
 } from '../utils/affineMath';
-import { ShieldCheck, Search, Key, Sparkles, Check, Zap, HelpCircle, Sliders } from 'lucide-react';
+import { ShieldCheck, Search, Key, Sparkles, Check, Zap, HelpCircle, Sliders, Binary, Activity, Target, Flame, Play } from 'lucide-react';
 import { CipherMethod } from '../types';
+import { simulateMeetInTheMiddle } from '../utils/desMath';
+import { calculateAvalancheEffect } from '../utils/aesMath';
 
 interface CryptanalysisTabProps {
   cipherMethod?: CipherMethod;
@@ -39,6 +41,33 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
   const [kpC2, setKpC2] = useState('Q');
 
   const [appliedKeyMsg, setAppliedKeyMsg] = useState<string | null>(null);
+
+  // 2DES Meet-in-the-Middle State
+  const [mitmPlaintext, setMitmPlaintext] = useState('ABCDEFGH');
+  const [mitmK1Suffix, setMitmK1Suffix] = useState(0x4a);
+  const [mitmK2Suffix, setMitmK2Suffix] = useState(0xb2);
+  const [mitmSearchBits, setMitmSearchBits] = useState(8);
+  const [mitmResult, setMitmResult] = useState(() =>
+    simulateMeetInTheMiddle('ABCDEFGH', 0x4a, 0xb2, 8)
+  );
+
+  // AES Avalanche State
+  const [avalanchePlaintext, setAvalanchePlaintext] = useState('CRYPTO_SECURITY');
+  const [avalancheKey, setAvalancheKey] = useState('AESKEY128BITS123');
+  const avalancheRes = useMemo(
+    () => calculateAvalancheEffect(avalanchePlaintext, avalancheKey),
+    [avalanchePlaintext, avalancheKey]
+  );
+
+  const runMitmSimulation = () => {
+    const res = simulateMeetInTheMiddle(
+      mitmPlaintext || 'ABCDEFGH',
+      mitmK1Suffix,
+      mitmK2Suffix,
+      mitmSearchBits
+    );
+    setMitmResult(res);
+  };
 
   // Frequency analysis calculation
   const freqData = useMemo(() => calculateLetterFrequency(cipherInput), [cipherInput]);
@@ -356,32 +385,248 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-13 sm:grid-cols-26 gap-1 h-36 items-end pt-4 pb-2 border-b border-[#262626]">
-          {freqData.map((item) => (
-            <div key={item.letter} className="flex flex-col items-center h-full justify-end group relative">
-              {/* Tooltip */}
-              <div className="absolute -top-10 opacity-0 group-hover:opacity-100 bg-[#0A0A0A] border border-[#333] px-2 py-1 text-[10px] font-mono-code whitespace-nowrap z-10 transition-opacity pointer-events-none text-white">
-                {item.letter}: {item.percentage}% (English: {item.englishPercentage}%)
-              </div>
+        <div className="overflow-x-auto">
+          <div
+            className="grid gap-1 h-36 items-end pt-4 pb-2 border-b border-[#262626] min-w-[500px]"
+            style={{ gridTemplateColumns: 'repeat(26, minmax(0, 1fr))' }}
+          >
+            {freqData.map((item) => (
+              <div key={item.letter} className="flex flex-col items-center h-full justify-end group relative">
+                {/* Tooltip */}
+                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 bg-[#0A0A0A] border border-[#333] px-2 py-1 text-[10px] font-mono-code whitespace-nowrap z-10 transition-opacity pointer-events-none text-white">
+                  {item.letter}: {item.percentage}% (English: {item.englishPercentage}%)
+                </div>
 
-              <div className="w-full flex items-end justify-center gap-0.5 h-full">
-                {/* Ciphertext Bar */}
-                <div
-                  style={{ height: `${Math.min(100, item.percentage * 6)}%` }}
-                  className="w-1.5 bg-[#FF3E00] transition-all group-hover:bg-[#FF602E]"
-                />
-                {/* Standard English Bar */}
-                <div
-                  style={{ height: `${Math.min(100, item.englishPercentage * 6)}%` }}
-                  className="w-1.5 bg-[#333333] transition-all group-hover:bg-[#555555]"
-                />
-              </div>
+                <div className="w-full flex items-end justify-center gap-0.5 h-full">
+                  {/* Ciphertext Bar */}
+                  <div
+                    style={{ height: `${Math.min(100, item.percentage * 6)}%` }}
+                    className="w-1.5 bg-[#FF3E00] transition-all group-hover:bg-[#FF602E]"
+                  />
+                  {/* Standard English Bar */}
+                  <div
+                    style={{ height: `${Math.min(100, item.englishPercentage * 6)}%` }}
+                    className="w-1.5 bg-[#333333] transition-all group-hover:bg-[#555555]"
+                  />
+                </div>
 
-              <span className="text-[10px] font-mono-code text-zinc-400 mt-1 font-bold">
-                {item.letter}
-              </span>
+                <span className="text-[10px] font-mono-code text-zinc-400 mt-1 font-bold">
+                  {item.letter}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 4: 2DES Meet-in-the-Middle (MITM) Attack Simulator */}
+      <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#262626] pb-3 gap-2">
+          <div>
+            <h3 className="text-xs font-mono-code font-bold text-amber-400 uppercase tracking-[0.15em] flex items-center gap-2">
+              <Target className="w-4 h-4 text-amber-400" />
+              <span>2DES MEET-IN-THE-MIDDLE (MITM) ATTACK ENGINE</span>
+            </h3>
+            <p className="text-xs text-zinc-400 font-sans mt-1">
+              Diffie & Hellman's time-space trade-off reducing 2DES complexity from <span className="text-rose-400 font-mono-code">2¹¹²</span> down to <span className="text-amber-400 font-mono-code">2⁵⁷</span> operations.
+            </p>
+          </div>
+          <button
+            onClick={runMitmSimulation}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-xs font-mono-code font-bold uppercase rounded-xl flex items-center gap-2 transition-all self-start sm:self-auto"
+          >
+            <Play className="w-3.5 h-3.5 fill-black" /> Run MITM Collision Search
+          </button>
+        </div>
+
+        {/* MITM Parameters */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl font-mono-code text-xs">
+          <div>
+            <label className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Plaintext Block (P):</label>
+            <input
+              type="text"
+              maxLength={8}
+              value={mitmPlaintext}
+              onChange={(e) => setMitmPlaintext(e.target.value.toUpperCase())}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-white rounded-xl focus:border-amber-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-amber-400 uppercase font-bold block mb-1">Secret K1 Suffix (Hex):</label>
+            <input
+              type="text"
+              value={mitmK1Suffix.toString(16).toUpperCase()}
+              onChange={(e) => setMitmK1Suffix(parseInt(e.target.value || '0', 16) & 0xff)}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-amber-400 rounded-xl focus:border-amber-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-sky-400 uppercase font-bold block mb-1">Secret K2 Suffix (Hex):</label>
+            <input
+              type="text"
+              value={mitmK2Suffix.toString(16).toUpperCase()}
+              onChange={(e) => setMitmK2Suffix(parseInt(e.target.value || '0', 16) & 0xff)}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-sky-400 rounded-xl focus:border-sky-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Key Search Bits:</label>
+            <select
+              value={mitmSearchBits}
+              onChange={(e) => setMitmSearchBits(Number(e.target.value))}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-white rounded-xl focus:border-amber-400 outline-none"
+            >
+              <option value={8}>8-bit Space (256 candidate keys)</option>
+              <option value={10}>10-bit Space (1024 candidate keys)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* MITM Results Display */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl font-mono-code text-xs space-y-3">
+            <span className="text-amber-400 font-bold uppercase block">Attack Statistics & Proof</span>
+            <div className="space-y-1.5 text-zinc-300">
+              <div className="flex justify-between">
+                <span>Known Plaintext (Hex):</span>
+                <span className="text-white">{mitmResult.knownPlaintextHex}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Known Ciphertext (Hex):</span>
+                <span className="text-white">{mitmResult.knownCiphertextHex}</span>
+              </div>
+              <div className="flex justify-between text-amber-400">
+                <span>Precomputed Forward States:</span>
+                <span className="font-bold">{mitmResult.spaceSize}</span>
+              </div>
+              <div className="flex justify-between text-sky-400">
+                <span>Backward Lookups Tested:</span>
+                <span className="font-bold">{mitmResult.stepsSearched}</span>
+              </div>
+              <div className="flex justify-between text-emerald-400 pt-2 border-t border-[#262626]">
+                <span>Total MITM Operations:</span>
+                <span className="font-bold">{mitmResult.spaceSize + mitmResult.stepsSearched}</span>
+              </div>
+              <div className="flex justify-between text-rose-400">
+                <span>Equivalent Brute Force Steps:</span>
+                <span className="font-bold">{mitmResult.spaceSize * mitmResult.spaceSize}</span>
+              </div>
             </div>
-          ))}
+          </div>
+
+          <div className="p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl font-mono-code text-xs space-y-3">
+            <span className="text-emerald-400 font-bold uppercase block">
+              Recovered Key Pairs ({mitmResult.tableMatches.length} Matches Found)
+            </span>
+            <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+              {mitmResult.tableMatches.map((m, idx) => (
+                <div key={idx} className="p-2.5 bg-[#141414] border border-[#333] rounded-xl space-y-1">
+                  <div className="flex justify-between text-amber-300">
+                    <span>K1: {m.key1}</span>
+                    <span className="text-zinc-500">#{idx + 1}</span>
+                  </div>
+                  <div className="flex justify-between text-sky-300">
+                    <span>K2: {m.key2}</span>
+                    <span className="text-emerald-400 font-bold">MATCH</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-500 truncate">
+                    Collision M: {m.intermediateHex}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl text-xs text-zinc-300">
+          <p className="font-sans leading-relaxed text-[11px] text-zinc-400">
+            {mitmResult.explanation} For full 56-bit DES keys, brute force takes <strong className="text-white">2¹¹² operations</strong> (astronomical), but MITM solves it in <strong className="text-amber-400">2 × 2⁵⁶ = 2⁵⁷ operations</strong> with 2⁵⁶ table storage!
+          </p>
+        </div>
+      </div>
+
+      {/* SECTION 5: AES Strict Avalanche Criterion (SAC) & Round Diffusion Analyzer */}
+      <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#262626] pb-3 gap-2">
+          <div>
+            <h3 className="text-xs font-mono-code font-bold text-cyan-400 uppercase tracking-[0.15em] flex items-center gap-2">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <span>AES STRICT AVALANCHE CRITERION (SAC) DIFFUSION LAB</span>
+            </h3>
+            <p className="text-xs text-zinc-400 font-sans mt-1">
+              Measures how a single bit alteration in input propagates across all 128 state bits across AES rounds.
+            </p>
+          </div>
+          <span className="text-[10px] font-mono-code px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 rounded-full font-bold">
+            Target SAC: ~50% (64 / 128 Bits)
+          </span>
+        </div>
+
+        {/* Inputs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-[#0A0A0A] border border-[#262626] rounded-2xl font-mono-code text-xs">
+          <div>
+            <label className="text-[10px] text-zinc-400 uppercase font-bold block mb-1">Plaintext Block (P):</label>
+            <input
+              type="text"
+              value={avalanchePlaintext}
+              onChange={(e) => setAvalanchePlaintext(e.target.value)}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-white rounded-xl focus:border-cyan-400 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-cyan-400 uppercase font-bold block mb-1">AES Key (128-bit):</label>
+            <input
+              type="text"
+              value={avalancheKey}
+              onChange={(e) => setAvalancheKey(e.target.value)}
+              className="w-full bg-[#141414] border border-[#333] px-3 py-1.5 text-cyan-400 rounded-xl focus:border-cyan-400 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Round by Round Diffusion Chart */}
+        <div className="space-y-3 font-mono-code text-xs">
+          <div className="grid grid-cols-10 gap-2 items-end h-40 pt-4 pb-2 border-b border-[#262626]">
+            {avalancheRes.roundStats.map((st) => (
+              <div key={st.round} className="flex flex-col items-center h-full justify-end group relative">
+                <div className="absolute -top-10 opacity-0 group-hover:opacity-100 bg-[#0A0A0A] border border-[#333] px-2 py-1 text-[10px] font-mono-code whitespace-nowrap z-10 transition-opacity pointer-events-none text-white">
+                  Round {st.round}: {st.flippedBits} bits ({st.percentage}%)
+                </div>
+                <div
+                  style={{ height: `${st.percentage}%` }}
+                  className={`w-full rounded-t transition-all ${
+                    st.percentage >= 45 && st.percentage <= 55
+                      ? 'bg-cyan-400 group-hover:bg-cyan-300'
+                      : 'bg-indigo-500 group-hover:bg-indigo-400'
+                  }`}
+                />
+                <span className="text-[10px] text-zinc-400 mt-1 font-bold">R{st.round}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span>Round 1 (Initial SubBytes + ShiftRows)</span>
+            <span className="text-cyan-400 font-bold">50% SAC Golden Standard</span>
+            <span>Round 10 (Full Ciphertext Output)</span>
+          </div>
+        </div>
+
+        {/* Sweet32 & Avalanche Educational Note */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 bg-cyan-500/5 border border-cyan-500/20 rounded-xl text-xs space-y-1 font-sans">
+            <strong className="text-cyan-400 font-mono-code block">AES Avalanche Guarantee:</strong>
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              {avalancheRes.overallSummary} Because MixColumns provides maximum branch number 5 across columns, 1 bit changes spread to all 16 bytes in just two rounds.
+            </p>
+          </div>
+
+          <div className="p-3 bg-rose-500/5 border border-rose-500/20 rounded-xl text-xs space-y-1 font-sans">
+            <strong className="text-rose-400 font-mono-code block">Sweet32 Collision Attack (3DES Limitation):</strong>
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              3DES uses 64-bit blocks. By the Birthday Paradox, identical ciphertext blocks collide after encrypting only 2³² blocks (~32 GB or 4 GB in HTTPS sessions), leaking plaintext cookies. AES uses <strong>128-bit blocks</strong>, making collision attacks mathematically impossible (requiring 2⁶⁴ blocks = billions of terabytes).
+            </p>
+          </div>
         </div>
       </div>
     </div>

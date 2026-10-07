@@ -192,4 +192,214 @@ If $\\gcd(x_1 - x_2, 26) = 1$, we multiply by $(x_1 - x_2)^{-1}$ to find $a$, th
       },
     ],
   },
+  {
+    id: 'des_feistel',
+    title: 'Lesson 5: DES & The Feistel Network Architecture',
+    subtitle: '64-bit Block Cipher, 16 Rounds, and S-Box Non-Linearity',
+    iconName: 'ShieldAlert',
+    sections: [
+      {
+        heading: 'Feistel Cipher Network Structure',
+        content: `The **Data Encryption Standard (DES)** was developed by IBM and standardized by NIST in 1977. It operates on **64-bit plaintext blocks** using a **56-bit secret key** (64 bits with 8 parity bits).
+
+The 64-bit block is split into two 32-bit halves: **Left ($L$)** and **Right ($R$)**.
+For each of the 16 rounds:
+$$L_i = R_{i-1}$$
+$$R_i = L_{i-1} \\oplus F(R_{i-1}, K_i)$$
+
+Where:
+- $F(R, K)$ is the Feistel round function
+- $K_i$ is the 48-bit subkey derived from the 56-bit key schedule`,
+      },
+      {
+        heading: 'The Feistel F-Function & S-Boxes',
+        content: `Inside the $F(R, K)$ function:
+1. **Expansion ($E$)**: Expands 32 bits of $R$ into 48 bits.
+2. **XOR with Subkey**: $E(R) \\oplus K_i$ (48 bits).
+3. **8 S-Boxes ($S_1 \\dots S_8$)**: The **ONLY non-linear** component of DES! Each S-box takes 6 input bits (bits 1 & 6 select row 0-3; bits 2-5 select column 0-15) and outputs 4 bits (48 bits $\\to$ 32 bits).
+4. **Permutation ($P$)**: Permutes the 32 bits before XORing with $L$.`,
+        interactiveWidget: 'des-feistel',
+      },
+    ],
+    quiz: [
+      {
+        id: 'q5_1',
+        question: 'What is the ONLY non-linear component in the DES encryption algorithm?',
+        options: [
+          'Initial Permutation (IP)',
+          'Expansion Permutation (E)',
+          'The 8 Substitution Boxes (S-Boxes)',
+          'Permutation P'
+        ],
+        correctIndex: 2,
+        explanation: 'The S-boxes provide confusion and non-linearity. All other operations (IP, FP, E, P, XOR) are purely linear!',
+      },
+      {
+        id: 'q5_2',
+        question: 'What is the effective key length of standard DES without parity bits?',
+        options: ['64 bits', '56 bits', '128 bits', '48 bits'],
+        correctIndex: 1,
+        explanation: 'DES keys are 64 bits, but 8 bits are parity check bits, leaving an effective security key length of only 56 bits.',
+      },
+    ],
+  },
+  {
+    id: 'twodes_mitm',
+    title: 'Lesson 6: 2DES & The Meet-in-the-Middle Attack',
+    subtitle: 'Why Double Encryption does NOT double security',
+    iconName: 'Unlock',
+    sections: [
+      {
+        heading: 'The Cascading Double DES (2DES) Pipeline',
+        content: `To overcome the short 56-bit key length of DES, engineers proposed cascading two DES encryptions with two independent 56-bit keys ($K_1, K_2$), totaling **112 bits**:
+
+$$C = E_{K2}(E_{K1}(P))$$
+
+- **Stage 1**: Encrypt plaintext $P$ with $K_1$ to create intermediate block $M = E_{K1}(P)$.
+- **Stage 2**: Encrypt intermediate $M$ with $K_2$ to generate ciphertext $C = E_{K2}(M)$.
+
+Intuitively, an attacker would need to brute-force $2^{56} \\times 2^{56} = 2^{112}$ keys. However, **this intuition is fatally flawed!**`,
+      },
+      {
+        heading: 'Diffie & Hellman\'s Meet-in-the-Middle (MITM) Attack',
+        content: `In 1977, Whitfield Diffie and Martin Hellman proved that 2DES is vulnerable to a **Meet-in-the-Middle attack**:
+
+Since $C = E_{K2}(E_{K1}(P))$, decrypting both sides with $K_2$ yields:
+$$D_{K2}(C) = E_{K1}(P) = M$$
+
+**Attack Procedure:**
+1. Given a known pair $(P, C)$, compute $E_{K1}(P)$ for all $2^{56}$ possible values of $K_1$, and store $(M, K_1)$ in a hash table.
+2. For each of the $2^{56}$ possible values of $K_2$, compute $D_{K2}(C)$ and check if the result exists in the hash table!
+3. If a match is found ($E_{K1}(P) = D_{K2}(C)$), test candidate pair $(K_1, K_2)$ on a second plaintext-ciphertext block.
+
+**Complexity Collapse:**
+- Brute Force: $2^{112}$ operations.
+- MITM Attack: $2^{56} + 2^{56} = 2^{57}$ operations and $2^{56}$ memory!
+2DES provides only **57-bit effective security**, barely more than single DES!`,
+        interactiveWidget: '2des-mitm',
+      },
+    ],
+    quiz: [
+      {
+        id: 'q6_1',
+        question: 'What is the time complexity of the Meet-in-the-Middle attack on Double DES?',
+        options: ['2¹¹² operations', '2⁵⁷ operations', '2⁶⁴ operations', '2⁸⁰ operations'],
+        correctIndex: 1,
+        explanation: '2⁵⁶ encryptions to build table + 2⁵⁶ decryptions to match = 2 * 2⁵⁶ = 2⁵⁷ operations.',
+      },
+      {
+        id: 'q6_2',
+        question: 'What critical equation enables the Meet-in-the-Middle attack?',
+        options: [
+          'E_K1(P) = D_K2(C)',
+          'E_K1(P) = E_K2(C)',
+          'P ⊕ K1 = C ⊕ K2',
+          'D_K1(P) = E_K2(C)'
+        ],
+        correctIndex: 0,
+        explanation: 'C = E_K2(E_K1(P)) implies D_K2(C) = E_K1(P). The intermediate state M can be met in the middle from both sides.',
+      },
+    ],
+  },
+  {
+    id: 'threedes_ede',
+    title: 'Lesson 7: 3DES (Triple DES) & EDE Architecture',
+    subtitle: 'Triple DES Pipeline, Backward Compatibility, and Sweet32',
+    iconName: 'KeyRound',
+    sections: [
+      {
+        heading: 'Why EDE Mode (Encrypt-Decrypt-Encrypt)?',
+        content: `Because 2DES was broken by MITM attacks, cryptographers designed **Triple DES (3DES / TDEA)** using 3 stages:
+
+$$C = E_{K3}(D_{K2}(E_{K1}(P)))$$
+
+Notice that Stage 2 uses **Decryption ($D_{K2}$)** instead of Encryption! Why?
+
+**The Brilliant Backward Compatibility Property:**
+If an organization wants to communicate with legacy systems using Single DES, they simply set all three keys equal: $K_1 = K_2 = K_3 = K$:
+$$C = E_K(D_K(E_K(P))) = E_K(P)$$
+The second stage $D_K$ cleanly cancels the first stage $E_K$, seamlessly turning 3DES into Single DES without changing hardware or software pipelines!`,
+      },
+      {
+        heading: 'Keying Options & Sweet32 Attack',
+        content: `**3DES Keying Options:**
+- **Keying Option 1 (3-Key 3DES)**: $K_1 \\neq K_2 \\neq K_3$ (168-bit key length, 112-bit effective security against MITM).
+- **Keying Option 2 (2-Key 3DES)**: $K_1 = K_3 \\neq K_2$ (112-bit key length, 80-bit effective security).
+- **Keying Option 3 (Single DES)**: $K_1 = K_2 = K_3$ (56-bit key length).
+
+**Why NIST Deprecated 3DES:**
+Although 3-Key 3DES has 112 bits of security against key searches, its **64-bit block size** is vulnerable to the **Sweet32 attack** (birthday paradox creates block collisions after only $2^{32} \\approx 4$ billion blocks / 32 GB of data in CBC mode).`,
+        interactiveWidget: '3des-ede',
+      },
+    ],
+    quiz: [
+      {
+        id: 'q7_1',
+        question: 'Why does 3DES use Encrypt-Decrypt-Encrypt (EDE) instead of Encrypt-Encrypt-Encrypt (EEE)?',
+        options: [
+          'To run faster on microchips',
+          'To maintain backward compatibility with Single DES when K1 = K2 = K3',
+          'To prevent memory leaks',
+          'To double the block size'
+        ],
+        correctIndex: 1,
+        explanation: 'When K1 = K2 = K3, E_K(D_K(E_K(P))) = E_K(P). Decryption in stage 2 cancels stage 1, reverting exactly to single DES.',
+      },
+      {
+        id: 'q7_2',
+        question: 'What effective security level does 3-Key 3DES provide against Meet-in-the-Middle attack?',
+        options: ['168 bits', '112 bits', '56 bits', '128 bits'],
+        correctIndex: 1,
+        explanation: 'Due to Meet-in-the-Middle attacks on the 3 stages, 3-Key 3DES has an effective security level of 112 bits (not 168 bits).',
+      },
+    ],
+  },
+  {
+    id: 'aes_mastery',
+    title: 'Lesson 8: AES (Advanced Encryption Standard - Rijndael)',
+    subtitle: '128-bit State Matrix, Galois Field GF(2⁸), and 4 Transformation Rounds',
+    iconName: 'BookOpen',
+    sections: [
+      {
+        heading: 'Architecture of AES (Rijndael)',
+        content: `In 2001, NIST selected the **Rijndael** algorithm as the **Advanced Encryption Standard (AES - FIPS 197)** to replace DES.
+
+Key characteristics:
+- **Block Size**: Strictly **128 bits** (16 bytes), represented as a **$4 \\times 4$ State Matrix** of bytes.
+- **Key Sizes & Rounds**:
+  - AES-128: 128-bit key $\\implies$ **10 rounds**
+  - AES-192: 192-bit key $\\implies$ **12 rounds**
+  - AES-256: 256-bit key $\\implies$ **14 rounds**
+- Non-Feistel Substitution-Permutation Network (SPN): every round transforms the entire 128-bit block in parallel!`,
+      },
+      {
+        heading: 'The 4 Round Transformations',
+        content: `Each round (except Round 0 and Final Round) applies 4 mathematical transformations:
+
+1. **SubBytes (Non-linear Confusion)**: Each byte in the state is replaced with its S-Box equivalent (computed by multiplicative inverse in Galois Field $GF(2^8)$ followed by an affine transformation).
+2. **ShiftRows (Permutation Diffusion)**: Row 0 shifted 0 bytes, Row 1 shifted 1 byte left, Row 2 shifted 2 bytes left, Row 3 shifted 3 bytes left.
+3. **MixColumns (Linear Diffusion over $GF(2^8)$)**: Each column is multiplied by fixed matrix modulo $x^8 + x^4 + x^3 + x + 1$ ($0\\text{x}11B$).
+4. **AddRoundKey (Key Injection)**: XORs the 128-bit state with the 128-bit round key.
+
+**Final Round Special Rule:** The final round **OMITS MixColumns**! This design choice ensures encryption and decryption share symmetric hardware layout!`,
+        interactiveWidget: 'aes-state',
+      },
+    ],
+    quiz: [
+      {
+        id: 'q8_1',
+        question: 'Which transformation is intentionally OMITTED in the final round of AES encryption?',
+        options: ['SubBytes', 'ShiftRows', 'MixColumns', 'AddRoundKey'],
+        correctIndex: 2,
+        explanation: 'MixColumns is omitted in the final round (Round 10/12/14) to maintain symmetry and efficiency in the decryption pipeline.',
+      },
+      {
+        id: 'q8_2',
+        question: 'In AES-128, how many total rounds are executed?',
+        options: ['16 rounds', '10 rounds', '12 rounds', '14 rounds'],
+        correctIndex: 1,
+        explanation: 'AES-128 executes 10 rounds; AES-192 executes 12 rounds; AES-256 executes 14 rounds.',
+      },
+    ],
+  },
 ];

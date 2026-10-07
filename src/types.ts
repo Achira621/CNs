@@ -8,13 +8,17 @@ export type CipherMethod =
   | 'vigenere'
   | 'playfair'
   | 'hill'
+  | 'des'
+  | '2des'
+  | '3des'
+  | 'aes'
   | 'ecb'
   | 'cbc'
   | 'cfb'
   | 'ofb'
   | 'ctr';
 
-export type CipherCategory = 'monoalphabetic' | 'polyalphabetic' | 'block';
+export type CipherCategory = 'monoalphabetic' | 'polyalphabetic' | 'block' | 'modern';
 
 export interface BlockCipherStep {
   blockIndex: number;
@@ -90,7 +94,15 @@ export interface Lesson {
   sections: {
     heading: string;
     content: string;
-    interactiveWidget?: 'coprime-checker' | 'inverse-calculator' | 'equation-solver' | 'mini-encoder';
+    interactiveWidget?:
+      | 'coprime-checker'
+      | 'inverse-calculator'
+      | 'equation-solver'
+      | 'mini-encoder'
+      | 'des-feistel'
+      | '2des-mitm'
+      | '3des-ede'
+      | 'aes-state';
   }[];
   quiz: LessonQuizQuestion[];
 }

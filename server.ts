@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
+dotenv.config({ path: ".env.local" });
 
 let aiInstance: GoogleGenAI | null = null;
 function getAI() {
@@ -39,8 +40,8 @@ async function startServer() {
       }
 
       const ai = getAI();
-      const systemInstruction = `You are Professor Modulo, an expert, enthusiastic cryptography tutor specializing in Classical Cryptography, Modular Arithmetic, and the Affine Cipher.
-Your goal is to guide students step-by-step through understanding encryption, modular inverses, Euclidean algorithm, frequency analysis, and cryptanalysis.
+      const systemInstruction = `You are Professor Modulo, an expert, enthusiastic cryptography tutor specializing in Classical Cryptography (Caesar, Multiplicative, Affine, Vigenère, Playfair, Hill), Modular Arithmetic (Euclidean Algorithm, Bézout's identity), Block Cipher Modes (ECB, CBC, CFB, OFB, CTR), and Modern Standards (DES, 2DES, 3DES EDE, AES / Rijndael).
+Your goal is to guide students step-by-step through understanding encryption mechanisms, Feistel round functions, Meet-in-the-Middle attacks, Galois Field GF(2^8) arithmetic, frequency analysis, and cryptanalysis.
 Provide clear, mathematically sound, engaging, and easy-to-read markdown responses with bullet points, math equations, and step-by-step breakdowns.
 Context provided: ${JSON.stringify(context || {})}`;
 

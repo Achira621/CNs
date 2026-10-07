@@ -277,17 +277,17 @@ export const FluidBackgroundCanvas: React.FC = () => {
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Light-Gray Background ambient gradient matching study.fl-ex.co.kr (#F1F1F1)
+      // Dark Ambient Radial Gradient matching Cyber Theme (#08080C)
       const bgGrad = ctx.createRadialGradient(
         width / 2,
         height / 2,
-        100,
+        0,
         width / 2,
         height / 2,
-        width * 0.8
+        Math.max(width, height) * 0.8
       );
-      bgGrad.addColorStop(0, '#FFFFFF');
-      bgGrad.addColorStop(1, '#EAEAEA');
+      bgGrad.addColorStop(0, '#12121A');
+      bgGrad.addColorStop(1, '#08080C');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
@@ -332,7 +332,7 @@ export const FluidBackgroundCanvas: React.FC = () => {
           ctx.arc(node.x, node.y, 2 + Math.min(2, disFromBase / 8), 0, Math.PI * 2);
           ctx.fill();
         } else {
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
           ctx.fillRect(node.x - 0.5, node.y - 0.5, 1.5, 1.5);
         }
       }

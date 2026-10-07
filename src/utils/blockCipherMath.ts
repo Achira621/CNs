@@ -19,10 +19,31 @@ export function bytesToString(bytes: number[]): string {
 }
 
 /**
- * Convert byte array to hex representation
+ * Convert byte array to space-separated hex representation
  */
 export function bytesToHex(bytes: number[]): string {
-  return bytes.map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+  return bytes.map(b => (b & 0xff).toString(16).padStart(2, '0').toUpperCase()).join(' ');
+}
+
+/**
+ * Parse Hex string (e.g. "4F 82 A1" or "4F82A1") into byte array
+ */
+export function hexToBytes(hex: string): number[] {
+  const clean = hex.replace(/[^0-9A-Fa-f]/g, '');
+  const bytes: number[] = [];
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes.push(parseInt(clean.substring(i, i + 2), 16));
+  }
+  return bytes;
+}
+
+/**
+ * Check if string is formatted as Hex bytes
+ */
+export function isHexString(str: string): boolean {
+  const trimmed = str.trim();
+  if (!trimmed) return false;
+  return /^([0-9A-Fa-f]{2}\s*)+$/.test(trimmed);
 }
 
 /**
@@ -33,37 +54,41 @@ export function deriveBlockKey(key: string, blockSize: number): number[] {
   const keyBytes = stringToBytes(key.length > 0 ? key : 'KEY');
   const result: number[] = [];
   for (let i = 0; i < blockSize; i++) {
-    result.push(keyBytes[i % keyBytes.length] ^ ((i * 37 + 13) % 256));
+    result.push((keyBytes[i % keyBytes.length] ^ ((i * 37 + 13) % 256)) & 0xff);
   }
   return result;
 }
 
 /**
- * Simple pseudo-random F-function / S-Box block encryption function
- * Encrypts a block of bytes with expanded key bytes
+ * Pseudo-random F-function block encryption step
+ * Performs exact 8-bit circular left rotation (ROL8 by 3) + XOR key substitution
  */
 export function blockEncryptF(block: number[], keyBytes: number[]): number[] {
   return block.map((b, i) => {
     const k = keyBytes[i % keyBytes.length];
-    // Simple reversible substitution + XOR round
-    const rot = ((b << 3) | (b >> 5)) & 0xff;
+    const byteVal = b & 0xff;
+    // ROL8 by 3 bits
+    const rot = ((byteVal << 3) & 0xff) | (byteVal >> 5);
     return rot ^ k;
   });
 }
 
 /**
  * Decrypts a block encrypted with blockEncryptF
+ * Performs XOR key substitution + exact 8-bit circular right rotation (ROR8 by 3)
  */
 export function blockDecryptF(block: number[], keyBytes: number[]): number[] {
   return block.map((b, i) => {
     const k = keyBytes[i % keyBytes.length];
-    const unxor = b ^ k;
-    return ((unxor >> 3) | (unxor << 5)) & 0xff;
+    const unxor = (b & 0xff) ^ k;
+    // ROR8 by 3 bits
+    const rot = (unxor >> 3) | ((unxor << 5) & 0xff);
+    return rot & 0xff;
   });
 }
 
 /**
- * Helper to Pad string to multiple of blockSize (PKCS#7 style or spaces)
+ * Helper to Pad string to multiple of blockSize
  */
 export function padPlaintext(text: string, blockSize: number): string {
   const mod = text.length % blockSize;
@@ -95,7 +120,7 @@ export function processBlockCipher(
 
   if (mode === 'encrypt') {
     const padded = padPlaintext(input, blockSize);
-    const numBlocks = Math.ceil(padded.length / blockSize);
+    const numBlocks = Math.max(1, Math.ceil(padded.length / blockSize));
     const steps: BlockCipherStep[] = [];
     let fullCipherBytes: number[] = [];
 
@@ -172,14 +197,24 @@ export function processBlockCipher(
     }
 
     return {
-      ciphertext: bytesToString(fullCipherBytes),
+      ciphertext: bytesToHex(fullCipherBytes),
       ciphertextHex: bytesToHex(fullCipherBytes),
       steps,
     };
   } else {
     // Decryption mode
-    const cBytesFull = stringToBytes(input);
-    const numBlocks = Math.ceil(cBytesFull.length / blockSize);
+    let cBytesFull: number[] = [];
+    if (isHexString(input)) {
+      cBytesFull = hexToBytes(input);
+    } else {
+      cBytesFull = stringToBytes(input);
+    }
+
+    if (cBytesFull.length === 0) {
+      cBytesFull = [32, 32, 32, 32];
+    }
+
+    const numBlocks = Math.max(1, Math.ceil(cBytesFull.length / blockSize));
     const steps: BlockCipherStep[] = [];
     let fullPlainBytes: number[] = [];
 
@@ -252,8 +287,10 @@ export function processBlockCipher(
       });
     }
 
+    const decryptedStr = bytesToString(fullPlainBytes);
+
     return {
-      ciphertext: bytesToString(fullPlainBytes),
+      ciphertext: decryptedStr,
       ciphertextHex: bytesToHex(fullPlainBytes),
       steps,
     };

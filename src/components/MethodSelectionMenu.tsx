@@ -156,17 +156,63 @@ export const METHOD_CARDS: MethodCardInfo[] = [
     gradient: 'from-pink-500/20 to-rose-500/20 text-pink-400',
     borderHover: 'hover:border-pink-500/60 hover:shadow-pink-500/10',
   },
+  // Modern Standards
+  {
+    id: 'des',
+    name: 'Single DES (FIPS 46-3)',
+    category: 'modern',
+    tagline: '16-Round Feistel Network',
+    formula: 'C = IP⁻¹(R₁₆ ∥ L₁₆)',
+    description: 'NIST block cipher standard using 64-bit blocks, 16 Feistel rounds, 8 non-linear S-Boxes, and 56-bit effective key.',
+    icon: Lock,
+    gradient: 'from-amber-500/20 to-orange-500/20 text-amber-400',
+    borderHover: 'hover:border-amber-500/60 hover:shadow-amber-500/10',
+  },
+  {
+    id: '2des',
+    name: 'Double DES (2DES)',
+    category: 'modern',
+    tagline: 'Cascading Stage & MITM Vulnerability',
+    formula: 'C = E_K2(E_K1(P))',
+    description: 'Two sequential DES encryptions with two 56-bit keys (112 bits). Vulnerable to Meet-in-the-Middle attack (2⁵⁷ steps).',
+    icon: ShieldCheck,
+    gradient: 'from-rose-500/20 to-amber-500/20 text-rose-400',
+    borderHover: 'hover:border-rose-500/60 hover:shadow-rose-500/10',
+  },
+  {
+    id: '3des',
+    name: 'Triple DES (3DES / TDEA)',
+    category: 'modern',
+    tagline: 'EDE Pipeline & Legacy Compatibility',
+    formula: 'C = E_K3(D_K2(E_K1(P)))',
+    description: 'Encrypt-Decrypt-Encrypt pipeline providing 112-bit effective MITM security with backward compatibility when K1=K2=K3.',
+    icon: KeyRound,
+    gradient: 'from-emerald-500/20 to-teal-500/20 text-emerald-400',
+    borderHover: 'hover:border-emerald-500/60 hover:shadow-emerald-500/10',
+  },
+  {
+    id: 'aes',
+    name: 'AES (Rijndael FIPS 197)',
+    category: 'modern',
+    tagline: 'Galois Field SPN Architecture',
+    formula: 'State = (SubBytes ∘ ShiftRows ∘ MixColumns ∘ AddRoundKey)¹⁰',
+    description: 'Standard 128-bit block cipher with 10/12/14 rounds operating over GF(2⁸) 4×4 state matrices with 128/192/256-bit keys.',
+    icon: Cpu,
+    gradient: 'from-cyan-500/20 to-blue-500/20 text-cyan-400',
+    borderHover: 'hover:border-cyan-500/60 hover:shadow-cyan-500/10',
+  },
 ];
 
 export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
   onSelectMethod,
   currentMethod,
 }) => {
-  const [activeBranch, setActiveBranch] = useState<'all' | 'monoalphabetic' | 'polyalphabetic' | 'block'>('all');
+  const [activeBranch, setActiveBranch] = useState<'all' | 'monoalphabetic' | 'polyalphabetic' | 'block' | 'modern'>('all');
 
   const monoMethods = METHOD_CARDS.filter((m) => m.category === 'monoalphabetic');
   const polyMethods = METHOD_CARDS.filter((m) => m.category === 'polyalphabetic');
   const blockMethods = METHOD_CARDS.filter((m) => m.category === 'block');
+  const modernMethods = METHOD_CARDS.filter((m) => m.category === 'modern');
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -183,7 +229,7 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
           Cryptography Cipher Taxonomy Tree
         </h1>
         <p className="text-zinc-400 text-sm sm:text-base max-w-2xl mx-auto font-sans leading-relaxed">
-          Explore Monoalphabetic, Polyalphabetic, and Block Cipher modes. Select any method to launch the studio workspace.
+          Explore Classical Monoalphabetic & Polyalphabetic ciphers, Block Modes, and Modern Standards (DES, 2DES, 3DES, AES).
         </p>
 
         {/* Branch Filter Tabs */}
@@ -196,7 +242,17 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
                 : 'bg-[#141414] text-zinc-400 hover:text-white border border-[#262626]'
             }`}
           >
-            All Methods (11)
+            All Methods (15)
+          </button>
+          <button
+            onClick={() => setActiveBranch('modern')}
+            className={`px-4 py-2 text-xs font-mono-code font-bold uppercase tracking-wider rounded-xl transition-all ${
+              activeBranch === 'modern'
+                ? 'bg-cyan-500 text-black font-extrabold shadow-lg shadow-cyan-500/25'
+                : 'bg-[#141414] text-zinc-400 hover:text-white border border-[#262626]'
+            }`}
+          >
+            Modern Standards (4)
           </button>
           <button
             onClick={() => setActiveBranch('monoalphabetic')}
@@ -226,7 +282,7 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
                 : 'bg-[#141414] text-zinc-400 hover:text-white border border-[#262626]'
             }`}
           >
-            Block Ciphers (5)
+            Block Modes (5)
           </button>
         </div>
       </div>
@@ -520,6 +576,84 @@ export const MethodSelectionMenu: React.FC<MethodSelectionMenuProps> = ({
                       <div className="mt-4 pt-3 border-t border-[#222] flex items-center justify-between text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
                         <span>Launch Block Studio</span>
                         <ArrowRight className="w-4 h-4 text-emerald-400 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {/* BRANCH 4: Modern Standards (DES, 2DES, 3DES, AES) */}
+          {(activeBranch === 'all' || activeBranch === 'modern') && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Cpu className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-serif-display font-bold text-white flex items-center gap-2">
+                    Modern Block Cipher Standards
+                    <span className="text-xs font-mono-code px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
+                      Branch: Modern (4)
+                    </span>
+                  </h3>
+                  <p className="text-xs text-zinc-400 font-sans">
+                    FIPS certified standards: Feistel networks, Meet-in-the-Middle resistance, EDE pipelines, and Rijndael Galois Field arithmetic.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {modernMethods.map((method) => {
+                  const Icon = method.icon;
+                  const isCurrent = currentMethod === method.id;
+
+                  return (
+                    <div
+                      key={method.id}
+                      onClick={() => onSelectMethod(method.id)}
+                      className={`group relative bg-[#141414] border rounded-2xl p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between ${
+                        isCurrent
+                          ? 'border-cyan-500 shadow-xl shadow-cyan-500/10 scale-[1.02]'
+                          : `border-[#262626] ${method.borderHover}`
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-3 rounded-xl bg-gradient-to-br ${method.gradient}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-serif-display font-bold text-white group-hover:text-cyan-400 transition-colors">
+                                  {method.name}
+                                </h4>
+                                {isCurrent && (
+                                  <span className="px-2 py-0.5 text-[9px] font-mono-code font-bold uppercase rounded bg-cyan-500 text-black">
+                                    ACTIVE
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-cyan-400 font-mono-code font-semibold block">
+                                {method.tagline}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 inline-block px-2.5 py-1 bg-[#0A0A0A] border border-[#2D2D2D] rounded-xl text-[11px] font-mono-code text-zinc-300 font-bold">
+                          {method.formula}
+                        </div>
+
+                        <p className="mt-3 text-xs text-zinc-400 font-sans leading-relaxed">
+                          {method.description}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-[#222] flex items-center justify-between text-xs font-mono-code font-bold text-zinc-400 group-hover:text-white">
+                        <span>Launch Cipher Studio</span>
+                        <ArrowRight className="w-4 h-4 text-cyan-400 transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
                   );
