@@ -331,8 +331,8 @@ export const CRYPTO_NODES: GraphNode[] = [
     targetTab: 'math',
     description: 'Irreducible polynomial multiplication m(x) = x⁸+x⁴+x³+x+1.',
     mass: 15,
-    x: 60,
-    y: -60,
+    x: 80,
+    y: -260,
     vx: 0,
     vy: 0,
   },
@@ -396,7 +396,7 @@ export const CRYPTO_NODES: GraphNode[] = [
     description: 'Comprehensive practical notes, syllabus questions, and quizzes.',
     mass: 17,
     x: 0,
-    y: 40,
+    y: 310,
     vx: 0,
     vy: 0,
   },
@@ -600,12 +600,27 @@ export const CryptoKnowledgeGraph: React.FC<CryptoKnowledgeGraphProps> = ({
         }
       }
 
-      // Center gravity pull & friction
+      // Center exclusion bubble (push nodes away from hero title and search omnibar)
+      const centerRepelRadiusX = 350;
+      const centerRepelRadiusY = 190;
+
       for (const node of nodes) {
         if (!node.isDragging) {
-          // Soft centering pull
-          node.vx -= (node.x * 0.005);
-          node.vy -= (node.y * 0.005);
+          // Normalized elliptical distance from center (0,0)
+          const nx = node.x / centerRepelRadiusX;
+          const ny = node.y / centerRepelRadiusY;
+          const ellDist = Math.sqrt(nx * nx + ny * ny);
+
+          if (ellDist < 1.0 && ellDist > 0.001) {
+            // Forcefully push nodes OUTWARD away from the hero card and search omnibar
+            const pushFactor = (1.0 - ellDist) * 38;
+            node.vx += (nx / ellDist) * pushFactor;
+            node.vy += (ny / ellDist) * pushFactor;
+          } else {
+            // Gentle boundary containment pull towards orbit
+            node.vx -= (node.x * 0.0025);
+            node.vy -= (node.y * 0.0025);
+          }
 
           // Friction damping
           node.vx *= 0.88;

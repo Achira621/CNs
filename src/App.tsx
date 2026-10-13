@@ -97,7 +97,6 @@ export default function App() {
   if (viewMode === 'hero') {
     return (
       <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white relative">
-        <FluidBackgroundCanvas />
         <KeyCursor enabled={cursorEnabled} />
         <HeroPage
           onGetIntoApp={() => setViewMode('menu')}

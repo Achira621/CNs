@@ -240,36 +240,38 @@ export const HeroPage: React.FC<HeroPageProps> = ({ onGetIntoApp, onOpenMenu, on
 
           {/* Centered Hero & Search UI Overlay (Modeled on Learn Anything) */}
           <div className="relative z-20 w-full max-w-2xl px-4 text-center pointer-events-auto">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#14141a]/90 border border-[#2c2c3d] rounded-full text-xs font-mono text-zinc-300 mb-4 shadow-xl backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Interactive Cryptographic Knowledge Graph</span>
-            </div>
+            <div className="bg-[#08080C]/75 backdrop-blur-md border border-white/5 p-6 sm:p-8 rounded-3xl shadow-2xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#14141a]/90 border border-[#2c2c3d] rounded-full text-xs font-mono text-zinc-300 mb-4 shadow-xl backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Interactive Cryptographic Knowledge Graph</span>
+              </div>
 
-            <h1 className="text-4xl sm:text-6xl font-serif-display font-extrabold text-white tracking-tight leading-[1.1] mb-6 drop-shadow-md">
-              I want to explore
-            </h1>
+              <h1 className="text-4xl sm:text-6xl font-serif-display font-extrabold text-white tracking-tight leading-[1.1] mb-6 drop-shadow-md">
+                I want to explore
+              </h1>
 
-            {/* Omnibar Input */}
-            <div className="mb-4">
-              <CryptoOmnibar
-                onSelectNode={handleSelectNode}
-                onInputChange={setGraphFilter}
-                className="w-full"
-              />
-            </div>
+              {/* Omnibar Input */}
+              <div className="mb-4">
+                <CryptoOmnibar
+                  onSelectNode={handleSelectNode}
+                  onInputChange={setGraphFilter}
+                  className="w-full"
+                />
+              </div>
 
-            {/* Topic Suggestion Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-              <span className="text-xs font-mono text-zinc-500">Quick topics:</span>
-              {quickPills.map((pill) => (
-                <button
-                  key={pill}
-                  onClick={() => setGraphFilter(pill)}
-                  className="px-3 py-1 rounded-full text-xs font-mono bg-[#14141c]/80 hover:bg-indigo-600/20 border border-[#262638] hover:border-indigo-500/40 text-zinc-300 hover:text-white transition-all backdrop-blur-sm"
-                >
-                  {pill}
-                </button>
-              ))}
+              {/* Topic Suggestion Pills */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                <span className="text-xs font-mono text-zinc-500">Quick topics:</span>
+                {quickPills.map((pill) => (
+                  <button
+                    key={pill}
+                    onClick={() => setGraphFilter(pill)}
+                    className="px-3 py-1 rounded-full text-xs font-mono bg-[#14141c]/80 hover:bg-indigo-600/20 border border-[#262638] hover:border-indigo-500/40 text-zinc-300 hover:text-white transition-all backdrop-blur-sm"
+                  >
+                    {pill}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Action Bar */}

@@ -30,21 +30,21 @@ export const CryptoOmnibar: React.FC<CryptoOmnibarProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Cycle placeholder smoothly when not typing
+  // Cycle placeholder smoothly only when not focused and not querying
   useEffect(() => {
-    if (query) return;
+    if (query || isFocused || isOpen) return;
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDERS.length);
-    }, 3200);
+    }, 4500);
     return () => clearInterval(interval);
-  }, [query]);
+  }, [query, isFocused, isOpen]);
 
   // Filter nodes based on query
   const filteredNodes = useMemo(() => {
@@ -94,7 +94,6 @@ export const CryptoOmnibar: React.FC<CryptoOmnibarProps> = ({
     const val = e.target.value;
     setQuery(val);
     setIsOpen(true);
-    setIsTyping(true);
     onInputChange?.(val);
   };
 
@@ -143,10 +142,18 @@ export const CryptoOmnibar: React.FC<CryptoOmnibarProps> = ({
           type="text"
           value={query}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            setIsOpen(true);
+          }}
+          onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
           autoFocus={autoFocus}
-          placeholder={`Explore ${PLACEHOLDERS[placeholderIndex]}...`}
+          placeholder={
+            isFocused
+              ? 'Type cipher name, algorithm, or lab topic...'
+              : `Explore ${PLACEHOLDERS[placeholderIndex]}...`
+          }
           className="w-full bg-transparent py-3.5 sm:py-4 pr-3 text-sm sm:text-base text-zinc-100 placeholder:text-zinc-500 outline-none font-sans"
         />
 
