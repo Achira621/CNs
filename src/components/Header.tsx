@@ -10,6 +10,7 @@ import {
   Home,
   Building2,
   GitFork,
+  Search,
 } from 'lucide-react';
 import { CipherMethod } from '../types';
 
@@ -24,6 +25,7 @@ interface HeaderProps {
   onOpenPresets: () => void;
   onGoToHero?: () => void;
   onOpenTreeMenu?: () => void;
+  onOpenOmnibar?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPresets,
   onGoToHero,
   onOpenTreeMenu,
+  onOpenOmnibar,
 }) => {
   const navItems = [
     { id: 'studio', label: 'Cipher Studio', icon: Lock },
@@ -135,6 +138,20 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* Omnibar Explore Button (Learn Anything inspired) */}
+            {onOpenOmnibar && (
+              <button
+                onClick={onOpenOmnibar}
+                className="px-3 py-2 text-xs font-mono-code uppercase tracking-wider font-bold bg-[#14141c] hover:bg-indigo-600/20 text-zinc-300 hover:text-indigo-300 border border-[#2b2b38] hover:border-indigo-500/40 rounded-[0.9rem] transition-all flex items-center gap-2 shadow-sm"
+                title="Explore ciphers & topics (Cmd+K / Ctrl+K)"
+              >
+                <Search className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="hidden sm:inline">Explore</span>
+                <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] bg-white/5 border border-white/10 rounded font-mono text-zinc-400">
+                  ⌘K
+                </kbd>
+              </button>
+            )}
             {/* Cipher Tree Menu Launcher */}
             {onOpenTreeMenu && (
               <button

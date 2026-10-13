@@ -10,6 +10,8 @@ import { AITutorDrawer } from './components/AITutorDrawer';
 import { PresetsModal } from './components/PresetsModal';
 import { KeyCursor } from './components/KeyCursor';
 import { FluidBackgroundCanvas } from './components/FluidBackgroundCanvas';
+import { OmnibarModal } from './components/OmnibarModal';
+import { GraphNode } from './components/CryptoKnowledgeGraph';
 import { CipherMethod } from './types';
 import { CIPHER_METHODS, isCoprime } from './utils/affineMath';
 
@@ -21,6 +23,7 @@ export default function App() {
   const [keyB, setKeyB] = useState<number>(8);
   const [inputText, setInputText] = useState<string>('THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG');
   const [cursorEnabled, setCursorEnabled] = useState<boolean>(true);
+  const [isOmnibarOpen, setIsOmnibarOpen] = useState<boolean>(false);
 
   // Polyalphabetic specific states
   const [vigenereKey, setVigenereKey] = useState<string>('SECRET');
@@ -80,13 +83,32 @@ export default function App() {
     setInputText(sampleText);
   };
 
+  const handleSelectGraphNode = (node: GraphNode) => {
+    if (node.targetMethod) {
+      handleCipherMethodChange(node.targetMethod);
+    }
+    if (node.targetTab) {
+      setActiveTab(node.targetTab);
+    }
+    setViewMode('app');
+  };
+
   // If viewMode is 'hero', show Hero Landing Page
   if (viewMode === 'hero') {
     return (
       <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white relative">
         <FluidBackgroundCanvas />
         <KeyCursor enabled={cursorEnabled} />
-        <HeroPage onGetIntoApp={() => setViewMode('menu')} onOpenMenu={() => setViewMode('menu')} />
+        <HeroPage
+          onGetIntoApp={() => setViewMode('menu')}
+          onOpenMenu={() => setViewMode('menu')}
+          onSelectTopicNode={handleSelectGraphNode}
+        />
+        <OmnibarModal
+          isOpen={isOmnibarOpen}
+          onClose={() => setIsOmnibarOpen(false)}
+          onSelectNode={handleSelectGraphNode}
+        />
       </div>
     );
   }
@@ -111,10 +133,16 @@ export default function App() {
           onOpenPresets={() => setIsPresetsOpen(true)}
           onGoToHero={() => setViewMode('hero')}
           onOpenTreeMenu={() => setViewMode('menu')}
+          onOpenOmnibar={() => setIsOmnibarOpen(true)}
         />
         <MethodSelectionMenu
           currentMethod={cipherMethod}
           onSelectMethod={handleSelectMethodFromMenu}
+        />
+        <OmnibarModal
+          isOpen={isOmnibarOpen}
+          onClose={() => setIsOmnibarOpen(false)}
+          onSelectNode={handleSelectGraphNode}
         />
       </div>
     );
@@ -143,6 +171,7 @@ export default function App() {
         onOpenPresets={() => setIsPresetsOpen(true)}
         onGoToHero={() => setViewMode('hero')}
         onOpenTreeMenu={() => setViewMode('menu')}
+        onOpenOmnibar={() => setIsOmnibarOpen(true)}
       />
 
       {/* Main Content Viewport */}
@@ -246,6 +275,13 @@ export default function App() {
         isOpen={isPresetsOpen}
         onClose={() => setIsPresetsOpen(false)}
         onSelectPreset={handleSelectPreset}
+      />
+
+      {/* Global Cmd+K Omnibar Modal */}
+      <OmnibarModal
+        isOpen={isOmnibarOpen}
+        onClose={() => setIsOmnibarOpen(false)}
+        onSelectNode={handleSelectGraphNode}
       />
     </div>
   );
