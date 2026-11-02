@@ -47,7 +47,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-[#13121F] border-r border-[#26243A] text-zinc-300 flex flex-col shrink-0 min-h-screen select-none z-30 transition-all">
+    <aside
+      data-tour="sidebar-nav"
+      className="w-64 bg-[#13121F] border-r border-[#26243A] text-zinc-300 flex flex-col shrink-0 min-h-screen select-none z-30 transition-all"
+    >
       {/* Top Branding Header */}
       <div className="p-6 border-b border-[#232135] flex items-center justify-between">
         <BrandLogo

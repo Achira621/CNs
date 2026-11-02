@@ -20,7 +20,9 @@ import { CryptoKnowledgeGraph, GraphNode } from './components/CryptoKnowledgeGra
 import { AITutorDrawer } from './components/AITutorDrawer';
 import { PresetsModal } from './components/PresetsModal';
 import { OmnibarModal } from './components/OmnibarModal';
-import { MascotTourGuide } from './components/MascotTourGuide';
+import { TourLauncherPopover } from './tour/TourLauncherPopover';
+import { TourEngine } from './tour/TourEngine';
+import { COMPLETE_TOUR_STEPS, TourStep } from './tour/TourRegistry';
 import { CipherMethod } from './types';
 import { isCoprime } from './utils/affineMath';
 import {
@@ -64,8 +66,37 @@ export default function App() {
   // Presets modal state
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
 
-  // Mascot Feature Tour Guide state
-  const [isMascotTourOpen, setIsMascotTourOpen] = useState(false);
+  // Roaming Mascot Tour Guide state
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [isLauncherOpen, setIsLauncherOpen] = useState(false);
+  const [activeTourSteps, setActiveTourSteps] = useState<TourStep[]>(COMPLETE_TOUR_STEPS);
+  const [hasResumePoint, setHasResumePoint] = useState(false);
+
+  const handleStartFullTour = () => {
+    setActiveTourSteps(COMPLETE_TOUR_STEPS);
+    setIsTourActive(true);
+    setHasResumePoint(true);
+  };
+
+  const handleStartPageTour = () => {
+    const pageSteps = COMPLETE_TOUR_STEPS.filter((s) => s.route === activeNav);
+    setActiveTourSteps(pageSteps.length > 0 ? pageSteps : COMPLETE_TOUR_STEPS);
+    setIsTourActive(true);
+    setHasResumePoint(true);
+  };
+
+  const handleSelectSectionTour = (sectionId: string) => {
+    const sectionSteps = COMPLETE_TOUR_STEPS.filter(
+      (s) => s.section.toLowerCase().includes(sectionId.toLowerCase()) || s.route === sectionId
+    );
+    setActiveTourSteps(sectionSteps.length > 0 ? sectionSteps : COMPLETE_TOUR_STEPS);
+    setIsTourActive(true);
+    setHasResumePoint(true);
+  };
+
+  const handleDemonstrateSample = () => {
+    setInputText('CRYPTO MASTERCLASS CNS LAB 2026');
+  };
 
   // Keyboard shortcut for Cmd/Ctrl + K Omnibar
   useEffect(() => {
@@ -160,7 +191,7 @@ export default function App() {
             setAiTutorPrompt('');
             setIsAITutorOpen(true);
           }}
-          onOpenMascotTour={() => setIsMascotTourOpen(true)}
+          onOpenMascotTour={() => setIsLauncherOpen(true)}
           notificationCount={1}
         />
 
@@ -470,10 +501,23 @@ export default function App() {
         onSelectNode={handleSelectGraphNode}
       />
 
-      {/* Game-Like Interactive Cyber Mascot Tour Guide */}
-      <MascotTourGuide
-        isOpen={isMascotTourOpen}
-        onClose={() => setIsMascotTourOpen(false)}
+      {/* Roaming Mascot Tour Launcher Popover */}
+      <TourLauncherPopover
+        isOpen={isLauncherOpen}
+        onClose={() => setIsLauncherOpen(false)}
+        activeNav={activeNav}
+        onStartFullTour={handleStartFullTour}
+        onStartPageTour={handleStartPageTour}
+        onSelectSection={handleSelectSectionTour}
+        hasResumePoint={hasResumePoint}
+        onResumeTour={() => setIsTourActive(true)}
+      />
+
+      {/* Roaming Interactive Mascot Tour Engine */}
+      <TourEngine
+        isActive={isTourActive}
+        onExit={() => setIsTourActive(false)}
+        activeNav={activeNav}
         onNavigate={(nav, algorithm) => {
           if (algorithm) {
             handleCipherMethodChange(algorithm);
@@ -482,6 +526,8 @@ export default function App() {
             setActiveNav(nav);
           }
         }}
+        initialSteps={activeTourSteps}
+        onDemonstrateSample={handleDemonstrateSample}
       />
     </div>
   );

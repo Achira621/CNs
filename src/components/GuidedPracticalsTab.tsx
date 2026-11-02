@@ -296,7 +296,7 @@ Experiment No. ${currentExp.expNumber} was successfully performed and studied in
   };
 
   return (
-    <div className="space-y-6">
+    <div data-tour="practicals-experiments" className="space-y-6">
       {/* Header Banner */}
       <div className="bg-[#101016] border border-[#262626] rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800 pb-4">

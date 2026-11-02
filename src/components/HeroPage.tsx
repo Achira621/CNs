@@ -70,7 +70,7 @@ export const HeroPage: React.FC<HeroPageProps> = ({
       {/* ============================================================ */}
       {/* 1. HERO SECTION (Cosmic White Canvas Composition) */}
       {/* ============================================================ */}
-      <section className="relative pt-6 sm:pt-10 pb-4 overflow-visible">
+      <section data-tour="dashboard-hero" className="relative pt-6 sm:pt-10 pb-4 overflow-visible">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
           {/* Left Hero Content */}
           <div className="space-y-6 max-w-2xl relative z-10">
@@ -127,7 +127,7 @@ export const HeroPage: React.FC<HeroPageProps> = ({
       {/* ============================================================ */}
       {/* 2. FOUR CATEGORY CARDS (High-Contrast Black Boxes) */}
       {/* ============================================================ */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <section data-tour="dashboard-categories" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Monoalphabetic */}
         <div
           onClick={() => onSelectCategory('monoalphabetic')}
@@ -234,7 +234,7 @@ export const HeroPage: React.FC<HeroPageProps> = ({
       {/* ============================================================ */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Continue Learning Card (DES) */}
-        <div className="lg:col-span-7 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
+        <div data-tour="dashboard-continue-learning" className="lg:col-span-7 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
           <div className="flex items-center gap-2 text-xs font-mono-code text-zinc-400 mb-4">
             <Clock className="w-4 h-4 text-purple-400" />
             <span className="uppercase tracking-wider font-semibold">Continue Learning</span>
@@ -273,7 +273,7 @@ export const HeroPage: React.FC<HeroPageProps> = ({
         </div>
 
         {/* Quick Tools Grid */}
-        <div className="lg:col-span-5 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
+        <div data-tour="dashboard-quick-tools" className="lg:col-span-5 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
           <div className="flex items-center gap-2 text-xs font-mono-code text-zinc-400 mb-4">
             <Zap className="w-4 h-4 text-amber-400" />
             <span className="uppercase tracking-wider font-semibold">Quick Tools</span>
@@ -322,7 +322,7 @@ export const HeroPage: React.FC<HeroPageProps> = ({
       {/* ============================================================ */}
       {/* 4. THE LABORATORY: ONE DESIGN SYSTEM. EVERY ALGORITHM. */}
       {/* ============================================================ */}
-      <section className="bg-[#13121F] border border-[#24223A] rounded-3xl p-6 sm:p-10 text-white shadow-xl space-y-6">
+      <section data-tour="dashboard-laboratory" className="bg-[#13121F] border border-[#24223A] rounded-3xl p-6 sm:p-10 text-white shadow-xl space-y-6">
         <div className="space-y-2">
           <span className="text-[11px] font-mono-code font-bold uppercase tracking-[0.2em] text-[#B58AE8]">
             THE LABORATORY

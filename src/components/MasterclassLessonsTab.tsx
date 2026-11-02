@@ -86,7 +86,7 @@ export const MasterclassLessonsTab: React.FC<MasterclassLessonsTabProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div data-tour="lessons-curriculum" className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {/* Sidebar Lesson Selector */}
       <div className="md:col-span-1 space-y-4">
         <div className="bg-[#141414] border border-[#262626] rounded-3xl p-4 shadow-xl">

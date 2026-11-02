@@ -238,21 +238,22 @@ export const AlgorithmPageLayout: React.FC<AlgorithmPageLayoutProps> = ({
       </div>
 
       {/* Main Dark Laboratory Container ("One design system. Every algorithm.") */}
-      <div className="bg-[#13121F] border border-[#27253D] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div data-tour="algorithm-workbench" className="bg-[#13121F] border border-[#27253D] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         {/* Navigation Tabs inside the Dark Container */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#242238] pb-5 mb-6">
           <div className="flex flex-wrap items-center gap-2">
             {[
               { id: 'workbench', label: 'Interactive Workbench & Trace Engine', icon: Calculator },
-              { id: 'theory', label: 'Mathematics & Theory', icon: BookOpen },
-              { id: 'weaknesses', label: 'Vulnerabilities & Cryptanalysis', icon: ShieldAlert },
-              { id: 'viva', label: 'Viva Voce Q&A', icon: HelpCircle },
+              { id: 'theory', label: 'Mathematics & Theory', icon: BookOpen, tourId: 'algorithm-theory-tab' },
+              { id: 'weaknesses', label: 'Vulnerabilities & Cryptanalysis', icon: ShieldAlert, tourId: 'algorithm-weaknesses-tab' },
+              { id: 'viva', label: 'Viva Voce Q&A', icon: HelpCircle, tourId: 'algorithm-viva-tab' },
             ].map((t) => {
               const Icon = t.icon;
               const isActive = activeTab === t.id;
               return (
                 <button
                   key={t.id}
+                  data-tour={t.tourId}
                   onClick={() => setActiveTab(t.id as any)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono-code font-semibold transition-all cursor-pointer ${
                     isActive

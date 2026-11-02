@@ -547,7 +547,7 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
       {selectedTab === 'clock' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Clock Visualizer SVG */}
-          <div className="md:col-span-2 bg-[#141414] border border-[#262626] p-6 shadow-xl flex flex-col items-center justify-center relative min-h-[380px]">
+          <div data-tour="math-mod26-clock" className="md:col-span-2 bg-[#141414] border border-[#262626] p-6 shadow-xl flex flex-col items-center justify-center relative min-h-[380px]">
             <h3 className="text-xs font-mono-code font-bold text-white uppercase tracking-[0.15em] self-start mb-1">
               26-HOUR MODULAR CLOCK MAP (E(x) = {keyA}x + {keyB} mod 26)
             </h3>
@@ -717,7 +717,7 @@ export const MathVisualizerTab: React.FC<MathVisualizerTabProps> = ({
 
       {/* SUB-TAB 2: Extended Euclidean Algorithm Step Matrix */}
       {selectedTab === 'euclid' && (
-        <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-5">
+        <div data-tour="math-extended-euclid" className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-5">
           <div className="border-b border-[#262626] pb-3">
             <h3 className="text-xs font-mono-code font-bold text-white uppercase tracking-[0.15em]">
               EXTENDED EUCLIDEAN ALGORITHM STEPS FOR a = {keyA} MOD 26

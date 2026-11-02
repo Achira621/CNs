@@ -19,6 +19,7 @@ export const AppTopbar: React.FC<AppTopbarProps> = ({
       {/* Global Omnibar Search Trigger */}
       <div className="flex-1 max-w-xl">
         <button
+          data-tour="topbar-search"
           onClick={onOpenSearch}
           className="w-full flex items-center justify-between px-3.5 py-2 bg-[#F3F2F8] hover:bg-[#EBE9F4] text-zinc-500 rounded-xl text-xs border border-[#E2DFED] transition-all group shadow-xs cursor-pointer"
         >
@@ -45,6 +46,7 @@ export const AppTopbar: React.FC<AppTopbarProps> = ({
 
         {/* AI Tutor Button */}
         <button
+          data-tour="topbar-ai-tutor"
           onClick={onOpenAITutor}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#8855C7] to-[#7C3AED] text-white text-xs font-semibold hover:opacity-95 shadow-xs transition-all active:scale-95 cursor-pointer"
         >
@@ -67,6 +69,7 @@ export const AppTopbar: React.FC<AppTopbarProps> = ({
 
         {/* Replaced VD button with the Cyber Mascot Bot Tour Launcher */}
         <button
+          data-tour="topbar-mascot-launcher"
           onClick={onOpenMascotTour}
           title="Launch Interactive Mascot Tour: Explore Every Feature!"
           className="group relative flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-[#13121F] hover:bg-[#1E1B2E] border-2 border-[#8855C7] hover:border-[#A855F7] text-white shadow-md hover:shadow-lg hover:shadow-[#8855C7]/30 transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"

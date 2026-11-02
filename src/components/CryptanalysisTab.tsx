@@ -208,7 +208,7 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
       {attackLabSection === 'brute' && (
         <>
           {/* Grid: Brute Force Scanner & Known-Plaintext Solver */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div data-tour="attack-tools" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SECTION 1: Brute-Force Scanner (Top Candidates) */}
         <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col space-y-4">
           <div className="flex items-center justify-between border-b border-[#262626] pb-3">
@@ -407,7 +407,7 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
       </div>
 
       {/* SECTION 3: Letter Frequency Distribution Bar Chart */}
-      <div className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-4">
+      <div data-tour="attack-frequency" className="bg-[#141414] border border-[#262626] p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-[#262626] pb-3">
           <h3 className="text-xs font-mono-code font-bold text-white uppercase tracking-[0.15em]">
             CIPHERTEXT FREQUENCY ANALYSIS VS STANDARD ENGLISH

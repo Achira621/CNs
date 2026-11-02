@@ -381,7 +381,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       )}
 
       {/* Top Banner & Control Panel */}
-      <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-6">
+      <div data-tour="studio-key-controls" className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-6">
         {/* Accent top gradient line */}
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FF3E00] via-amber-500 to-[#FF3E00]" />
 
@@ -892,7 +892,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
       {/* Main Text Input / Output Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Input Text Area */}
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
+        <div data-tour="studio-plaintext-input" className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
             <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-white flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Plaintext Input' : 'Ciphertext Input'}</span>
@@ -939,7 +939,7 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
         </div>
 
         {/* Output Text Area */}
-        <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
+        <div data-tour="studio-output" className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col h-full">
           <div className="flex items-center justify-between mb-3">
             <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-white flex items-center gap-2">
               <span>{mode === 'encrypt' ? 'Ciphertext Result' : 'Plaintext Result'}</span>
@@ -1092,10 +1092,12 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
 
       {/* Interactive Execution Trace Player */}
       {inputText.length > 0 && activeTrace.steps.length > 0 && (
-        <InteractiveTracePlayer
-          trace={activeTrace}
-          onAskAITutorAboutStep={handleAskAITutorAboutStep}
-        />
+        <div data-tour="studio-trace-player">
+          <InteractiveTracePlayer
+            trace={activeTrace}
+            onAskAITutorAboutStep={handleAskAITutorAboutStep}
+          />
+        </div>
       )}
 
       {/* Step-by-Step Character Calculation Pipeline Vector */}

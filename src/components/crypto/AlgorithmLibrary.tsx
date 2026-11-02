@@ -43,7 +43,7 @@ export const AlgorithmLibrary: React.FC<AlgorithmLibraryProps> = ({ onSelectAlgo
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div data-tour="algorithms-library" className="space-y-6 pb-12">
       {/* Header */}
       <div className="bg-white border border-[#E4E2EE] rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
