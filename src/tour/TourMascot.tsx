@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Play,
   Pause,
@@ -7,15 +7,11 @@ import {
   X,
   Sparkles,
   Zap,
-  CheckCircle,
-  Eye,
-  Sliders,
 } from 'lucide-react';
 import { TourStep } from './TourRegistry';
 import {
   TargetGeometry,
   calculateMascotPlacement,
-  PlacementDirection,
 } from './TourPositionController';
 
 export type MascotSpeechState =
@@ -25,6 +21,13 @@ export type MascotSpeechState =
   | 'speaking'
   | 'closing';
 
+export type TourLifecycleState =
+  | 'initializing'
+  | 'entering'
+  | 'ready'
+  | 'travelling'
+  | 'exiting';
+
 interface TourMascotProps {
   targetGeometry: TargetGeometry | null;
   isActive: boolean;
@@ -32,6 +35,7 @@ interface TourMascotProps {
   currentStepIndex: number;
   totalSteps: number;
   isPaused: boolean;
+  lifecycleState: TourLifecycleState;
   onNext: () => void;
   onPrev: () => void;
   onExit: () => void;
@@ -48,6 +52,7 @@ export const TourMascot: React.FC<TourMascotProps> = ({
   currentStepIndex,
   totalSteps,
   isPaused,
+  lifecycleState,
   onNext,
   onPrev,
   onExit,
@@ -72,7 +77,7 @@ export const TourMascot: React.FC<TourMascotProps> = ({
     step.placement
   );
 
-  // Blinking eye timer
+  // Blinking eye animation timer
   useEffect(() => {
     const blinkInterval = setInterval(() => {
       setBlink(true);
@@ -81,14 +86,14 @@ export const TourMascot: React.FC<TourMascotProps> = ({
     return () => clearInterval(blinkInterval);
   }, []);
 
-  // Eye tracking: look towards target element center
+  // Eye tracking: pupils track target element's center coordinates
   useEffect(() => {
     if (!targetGeometry) {
       setEyeShift({ x: 0, y: 0 });
       return;
     }
     const robotCenterX = placement.x + placement.width / 2;
-    const robotCenterY = placement.y + 60; // approximate eye height
+    const robotCenterY = placement.y + 55; // height of eyes
     const dx = targetGeometry.centerX - robotCenterX;
     const dy = targetGeometry.centerY - robotCenterY;
     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -99,30 +104,34 @@ export const TourMascot: React.FC<TourMascotProps> = ({
     });
   }, [targetGeometry, placement.x, placement.y, placement.width]);
 
-  // Step transition sequence: close mouth -> move/land -> open -> activate -> speak
+  // Synchronize mouth open sequence with lifecycle state
   useEffect(() => {
     if (!isActive || !step) return;
 
     setActiveSegment('what');
 
-    // Reset to closed traveling state for quick transition
-    setSpeechState('closed');
+    if (lifecycleState === 'travelling' || lifecycleState === 'initializing') {
+      setSpeechState('closed');
+      return;
+    }
 
-    // Flight arrival delay, then open mouth
-    const openTimer = setTimeout(() => {
-      setSpeechState('opening');
-      const activateTimer = setTimeout(() => {
-        setSpeechState('activating');
-        const speakTimer = setTimeout(() => {
-          setSpeechState('speaking');
-        }, 220);
-        return () => clearTimeout(speakTimer);
-      }, 180);
-      return () => clearTimeout(activateTimer);
-    }, 380);
+    if (lifecycleState === 'ready' || lifecycleState === 'entering') {
+      // Hinge open mouth -> activate OLED -> typewrite
+      const openTimer = setTimeout(() => {
+        setSpeechState('opening');
+        const activateTimer = setTimeout(() => {
+          setSpeechState('activating');
+          const speakTimer = setTimeout(() => {
+            setSpeechState('speaking');
+          }, 200);
+          return () => clearTimeout(speakTimer);
+        }, 160);
+        return () => clearTimeout(activateTimer);
+      }, 250);
 
-    return () => clearTimeout(openTimer);
-  }, [step.id, currentStepIndex, isActive]);
+      return () => clearTimeout(openTimer);
+    }
+  }, [step.id, currentStepIndex, isActive, lifecycleState]);
 
   // Typewriter effect for speech display
   useEffect(() => {
@@ -150,7 +159,7 @@ export const TourMascot: React.FC<TourMascotProps> = ({
     return () => clearInterval(interval);
   }, [activeSegment, step, speechState]);
 
-  // Skip typing on click
+  // Click to reveal all text instantly
   const handleSkipTyping = () => {
     if (isTyping) {
       let fullText = step.whatItIs;
@@ -163,21 +172,22 @@ export const TourMascot: React.FC<TourMascotProps> = ({
   };
 
   const handleNextStep = () => {
-    // Initiate closing mouth before moving
     setSpeechState('closing');
     setTimeout(() => {
       onNext();
-    }, 160);
+    }, 140);
   };
 
   const handlePrevStep = () => {
     setSpeechState('closing');
     setTimeout(() => {
       onPrev();
-    }, 160);
+    }, 140);
   };
 
   if (!isActive) return null;
+
+  const isVisible = lifecycleState !== 'initializing' && lifecycleState !== 'exiting';
 
   return (
     <>
@@ -185,7 +195,7 @@ export const TourMascot: React.FC<TourMascotProps> = ({
       {/* 1. OPTIONAL DEVELOPMENT DEBUG MODE OVERLAYS */}
       {/* ========================================================================= */}
       {debugMode && (
-        <div className="fixed inset-0 pointer-events-none z-[9998]">
+        <div className="fixed inset-0 pointer-events-none z-[10020]">
           {/* Target Box Outline */}
           {targetGeometry && (
             <div
@@ -235,6 +245,7 @@ export const TourMascot: React.FC<TourMascotProps> = ({
             <div>Space R/L: {Math.round(placement.debugInfo.availableRight)} / {Math.round(placement.debugInfo.availableLeft)}</div>
             <div>Space B/T: {Math.round(placement.debugInfo.availableBottom)} / {Math.round(placement.debugInfo.availableTop)}</div>
             <div>Mascot: {Math.round(placement.width)} × {Math.round(placement.height)}</div>
+            <div>Lifecycle: <span className="text-emerald-400">{lifecycleState}</span></div>
           </div>
         </div>
       )}
@@ -243,15 +254,20 @@ export const TourMascot: React.FC<TourMascotProps> = ({
       {/* 2. THE UNIFIED ROAMING ROBOT & INTEGRATED OLED MOUTH DISPLAY */}
       {/* ========================================================================= */}
       <div
-        className="fixed z-[9995] select-none will-change-transform"
+        className="fixed select-none"
         style={{
-          transform: `translate3d(${placement.x}px, ${placement.y}px, 0)`,
+          position: 'fixed',
+          left: `${placement.x}px`,
+          top: `${placement.y}px`,
           width: `${placement.width}px`,
+          zIndex: 10010,
+          opacity: isVisible ? 1 : 0,
+          pointerEvents: isVisible ? 'auto' : 'none',
           transition:
-            'transform 0.45s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.35s ease, height 0.35s ease',
+            'left 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), top 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), width 0.3s ease, opacity 0.25s ease',
         }}
       >
-        {/* Pointer indicator towards active target */}
+        {/* Subtle Laser pointer towards active target */}
         {targetGeometry && (
           <div
             className={`absolute pointer-events-none transition-all duration-300 ${
@@ -268,8 +284,8 @@ export const TourMascot: React.FC<TourMascotProps> = ({
           </div>
         )}
 
-        {/* Outer Vault Frame */}
-        <div className="relative bg-[#12111A] border-2 border-[#8855C7] rounded-[28px] shadow-[0_20px_60px_rgba(136,85,199,0.35),0_0_20px_rgba(136,85,199,0.2)] overflow-hidden transition-all duration-300 pointer-events-auto">
+        {/* Outer Robot Housing Vault */}
+        <div className="relative bg-[#12111A] border-2 border-[#8855C7] rounded-[28px] shadow-[0_20px_60px_rgba(136,85,199,0.35),0_0_20px_rgba(136,85,199,0.2)] overflow-hidden transition-all duration-300">
           {/* Subtle Ambient Radial Aura */}
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-[#8855C7]/20 rounded-full blur-2xl pointer-events-none" />
 

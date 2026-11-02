@@ -37,7 +37,7 @@ export interface MascotPlacement {
 export function measureElementGeometry(el: HTMLElement | null): TargetGeometry | null {
   if (!el) return null;
   const rect = el.getBoundingClientRect();
-  // Check if element is completely disconnected or has 0 dimensions
+  // Check if element has zero area or is unrendered
   if (rect.width <= 0 && rect.height <= 0) return null;
 
   return {
@@ -68,8 +68,8 @@ function rectsOverlap(
 }
 
 /**
- * Intelligent, collision-aware mascot placement calculator.
- * Strictly avoids covering the target element while keeping the robot in viewport.
+ * Authoritative, collision-aware mascot placement calculator.
+ * Strictly avoids covering the target element while keeping the robot in the visible viewport.
  */
 export function calculateMascotPlacement(
   targetGeometry: TargetGeometry | null,
@@ -79,29 +79,27 @@ export function calculateMascotPlacement(
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
 
-  const marginX = 16;
+  const isMobile = vw < 640;
+  const marginX = isMobile ? 12 : 20;
   const marginTop = 75; // reserve space for topbar
-  const marginBottom = 16;
-  const gap = 20;
+  const marginBottom = isMobile ? 12 : 20;
+  const gap = isMobile ? 14 : 20;
 
-  // Responsive dimensions for mascot
-  let mascotWidth: number;
-  let mascotHeight: number;
+  // Responsive stable dimensions for desktop vs mobile
+  const mascotWidth = isMobile
+    ? Math.min(320, Math.max(250, vw - marginX * 2))
+    : Math.min(360, Math.max(280, vw - marginX * 2));
 
-  if (isMouthOpen) {
-    // Open speech display
-    mascotWidth = Math.min(360, Math.max(280, vw - marginX * 2));
-    mascotHeight = Math.min(410, Math.max(290, vh - marginTop - marginBottom));
-  } else {
-    // Closed compact traveling mascot
-    mascotWidth = 130;
-    mascotHeight = 130;
-  }
+  const mascotHeight = isMouthOpen
+    ? isMobile
+      ? Math.min(240, Math.max(200, vh - marginTop - marginBottom))
+      : Math.min(380, Math.max(260, vh - marginTop - marginBottom))
+    : 130;
 
   // Fallback: If no target element exists, place safely at top right
   if (!targetGeometry) {
     const defaultX = Math.max(marginX, vw - mascotWidth - 28);
-    const defaultY = marginTop + 10;
+    const defaultY = marginTop + 12;
     return {
       x: defaultX,
       y: defaultY,
@@ -139,11 +137,10 @@ export function calculateMascotPlacement(
 
   const candidates: Candidate[] = [];
 
-  // 1. RIGHT CANDIDATE
+  // 1. RIGHT CANDIDATE: Place to the right of target, aligned near top of target
   {
     const candX = targetGeometry.right + gap;
-    // Align vertically with target center, clamped to viewport bounds
-    let candY = targetGeometry.centerY - mascotHeight / 2;
+    let candY = targetGeometry.top - 10;
     candY = Math.max(marginTop, Math.min(vh - mascotHeight - marginBottom, candY));
 
     const candRect = {
@@ -157,16 +154,16 @@ export function calculateMascotPlacement(
       rectsOverlap(candRect, targetGeometry);
 
     let score = availableRight - mascotWidth;
-    if (preferredPlacement === 'right') score += 200;
-    if (!collides) score += 300;
+    if (preferredPlacement === 'right') score += 250;
+    if (!collides) score += 350;
 
     candidates.push({ direction: 'right', x: candX, y: candY, score, collides });
   }
 
-  // 2. LEFT CANDIDATE
+  // 2. LEFT CANDIDATE: Place to the left of target, aligned near top of target
   {
     const candX = targetGeometry.left - gap - mascotWidth;
-    let candY = targetGeometry.centerY - mascotHeight / 2;
+    let candY = targetGeometry.top - 10;
     candY = Math.max(marginTop, Math.min(vh - mascotHeight - marginBottom, candY));
 
     const candRect = {
@@ -180,13 +177,13 @@ export function calculateMascotPlacement(
       rectsOverlap(candRect, targetGeometry);
 
     let score = availableLeft - mascotWidth;
-    if (preferredPlacement === 'left') score += 200;
-    if (!collides) score += 300;
+    if (preferredPlacement === 'left') score += 250;
+    if (!collides) score += 350;
 
     candidates.push({ direction: 'left', x: candX, y: candY, score, collides });
   }
 
-  // 3. BOTTOM CANDIDATE
+  // 3. BOTTOM CANDIDATE: Place below target
   {
     const candY = targetGeometry.bottom + gap;
     let candX = targetGeometry.centerX - mascotWidth / 2;
@@ -203,13 +200,13 @@ export function calculateMascotPlacement(
       rectsOverlap(candRect, targetGeometry);
 
     let score = availableBottom - mascotHeight;
-    if (preferredPlacement === 'bottom') score += 200;
-    if (!collides) score += 300;
+    if (preferredPlacement === 'bottom') score += 250;
+    if (!collides) score += 350;
 
     candidates.push({ direction: 'bottom', x: candX, y: candY, score, collides });
   }
 
-  // 4. TOP CANDIDATE
+  // 4. TOP CANDIDATE: Place above target
   {
     const candY = targetGeometry.top - gap - mascotHeight;
     let candX = targetGeometry.centerX - mascotWidth / 2;
@@ -226,8 +223,8 @@ export function calculateMascotPlacement(
       rectsOverlap(candRect, targetGeometry);
 
     let score = availableTop - mascotHeight;
-    if (preferredPlacement === 'top') score += 200;
-    if (!collides) score += 300;
+    if (preferredPlacement === 'top') score += 250;
+    if (!collides) score += 350;
 
     candidates.push({ direction: 'top', x: candX, y: candY, score, collides });
   }
@@ -235,14 +232,14 @@ export function calculateMascotPlacement(
   // Sort candidates by score descending
   candidates.sort((a, b) => b.score - a.score);
 
-  // Pick best candidate
+  // Pick top candidate
   let chosen = candidates[0];
 
-  // Final clamping to ensure mascot never clips outside viewport bounds
+  // Final clamping to ensure mascot never leaves viewport bounds
   let finalX = Math.max(marginX, Math.min(vw - mascotWidth - marginX, chosen.x));
   let finalY = Math.max(marginTop, Math.min(vh - mascotHeight - marginBottom, chosen.y));
 
-  // If clamping introduced a collision with the target, push away along the non-constrained axis
+  // If clamping caused overlap with target, nudge along non-constrained axis
   const finalMascotRect = {
     left: finalX,
     top: finalY,
@@ -253,16 +250,12 @@ export function calculateMascotPlacement(
   let collision = rectsOverlap(finalMascotRect, targetGeometry);
 
   if (collision) {
-    // If collides, attempt side clearance nudge
     if (targetGeometry.centerX > vw / 2) {
-      // Target is on right half: place mascot on the left
       finalX = Math.max(marginX, targetGeometry.left - gap - mascotWidth);
     } else {
-      // Target is on left half: place mascot on the right
       finalX = Math.min(vw - mascotWidth - marginX, targetGeometry.right + gap);
     }
 
-    // Recheck collision
     collision = rectsOverlap(
       {
         left: finalX,
@@ -273,7 +266,6 @@ export function calculateMascotPlacement(
       targetGeometry
     );
 
-    // If still colliding (e.g., target is extremely wide across screen), place above or below
     if (collision) {
       if (availableBottom >= mascotHeight + gap) {
         finalY = targetGeometry.bottom + gap;

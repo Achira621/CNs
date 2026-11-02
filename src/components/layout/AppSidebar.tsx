@@ -48,7 +48,6 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
   return (
     <aside
-      data-tour="sidebar-nav"
       className="w-64 bg-[#13121F] border-r border-[#26243A] text-zinc-300 flex flex-col shrink-0 min-h-screen select-none z-30 transition-all"
     >
       {/* Top Branding Header */}
@@ -70,6 +69,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           return (
             <button
               key={item.key}
+              data-tour={`nav-item-${item.key}`}
               onClick={() => onNavigate(item.key)}
               className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all group text-left ${
                 isActive

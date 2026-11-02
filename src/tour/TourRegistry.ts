@@ -34,13 +34,13 @@ export const COMPLETE_TOUR_STEPS: TourStep[] = [
   // =========================================================================
   {
     id: 'sidebar-nav',
-    title: 'Global Navigation Sidebar',
-    section: 'Command Center',
+    title: 'Dashboard Navigation',
+    section: 'Global Navigation',
     route: 'dashboard',
-    targetId: 'sidebar-nav',
-    whatItIs: 'The unified vertical sidebar providing instant access to every major environment in the Masterclass.',
+    targetId: 'nav-item-dashboard',
+    whatItIs: 'The Dashboard button in the unified navigation sidebar provides instant access to your central learning hub.',
     whyItExists: 'Allows seamless teleportation across classical studios, mathematical visualizers, attack suites, lessons, and practicals without losing your cryptographic state.',
-    howToUse: 'Click any navigation item with active lavender indicators. Hover over the bottom badge to inspect the academic course attribution.',
+    howToUse: 'Click the Dashboard tab or any sidebar item. Active lavender indicators show your current laboratory position.',
     quickTip: 'You can use number shortcuts or click the orbital brand logo at the top anytime to return to the Dashboard.',
     placement: 'right',
   },

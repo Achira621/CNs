@@ -36,8 +36,14 @@ export const TourLauncherPopover: React.FC<TourLauncherPopoverProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-18 sm:pr-8 bg-black/20 backdrop-blur-xs">
-      <div className="w-80 bg-white border border-[#E4E2EE] rounded-3xl shadow-2xl p-5 text-zinc-900 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-18 sm:pr-8 bg-black/20 backdrop-blur-xs"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-80 bg-white border border-[#E4E2EE] rounded-3xl shadow-2xl p-5 text-zinc-900 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div className="flex items-center gap-2.5">

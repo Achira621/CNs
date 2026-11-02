@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { TourStep, COMPLETE_TOUR_STEPS } from './TourRegistry';
 import { TourSpotlight } from './TourSpotlight';
-import { TourMascot } from './TourMascot';
+import { TourMascot, TourLifecycleState } from './TourMascot';
 import {
   TargetGeometry,
   measureElementGeometry,
@@ -31,6 +31,7 @@ export const TourEngine: React.FC<TourEngineProps> = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [targetGeometry, setTargetGeometry] = useState<TargetGeometry | null>(null);
+  const [lifecycleState, setLifecycleState] = useState<TourLifecycleState>('initializing');
   const [isPaused, setIsPaused] = useState(false);
   const [debugMode, setDebugMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -63,7 +64,7 @@ export const TourEngine: React.FC<TourEngineProps> = ({
     });
   }, [updateGeometry]);
 
-  // Resolve and wait for target element in DOM with smooth scrolling
+  // Target element resolution with scroll settling
   const resolveTarget = useCallback(
     (step: TourStep) => {
       let attempts = 0;
@@ -77,18 +78,23 @@ export const TourEngine: React.FC<TourEngineProps> = ({
           // Scroll target gently into view if needed
           el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
 
-          // Wait 250ms for smooth scroll settling, then measure
+          // Wait for smooth scroll settling, then measure and transition to ready
           setTimeout(() => {
             const geom = measureElementGeometry(el);
             setTargetGeometry(geom);
-          }, 260);
+            setLifecycleState('entering');
+            setTimeout(() => {
+              setLifecycleState('ready');
+            }, 180);
+          }, 240);
         } else if (attempts < maxAttempts) {
           attempts++;
           setTimeout(check, 100);
         } else {
-          // Graceful fallback: target not in DOM, position robot cleanly at top-right
+          // Fallback: target element not found in DOM, place mascot at default header position safely
           setTargetElement(null);
           setTargetGeometry(null);
+          setLifecycleState('ready');
         }
       };
 
@@ -99,11 +105,16 @@ export const TourEngine: React.FC<TourEngineProps> = ({
 
   // When step changes, handle navigation if needed and resolve target
   useEffect(() => {
-    if (!isActive || !currentStep) return;
+    if (!isActive || !currentStep) {
+      setLifecycleState('initializing');
+      setTargetGeometry(null);
+      setTargetElement(null);
+      return;
+    }
 
-    // Reset current target references while switching
-    setTargetElement(null);
+    setLifecycleState('travelling');
     setTargetGeometry(null);
+    setTargetElement(null);
 
     // Route navigation if required
     if (currentStep.route !== activeNav) {
@@ -116,7 +127,7 @@ export const TourEngine: React.FC<TourEngineProps> = ({
     }, 180);
 
     return () => clearTimeout(timer);
-  }, [isActive, currentStepIndex, currentStep, activeNav, onNavigate, resolveTarget]);
+  }, [isActive, currentStepIndex, currentStep?.id, activeNav, onNavigate, resolveTarget]);
 
   // Reactive listeners: ResizeObserver + scroll + resize
   useEffect(() => {
@@ -133,7 +144,6 @@ export const TourEngine: React.FC<TourEngineProps> = ({
       resizeObserver.observe(targetElement);
     }
 
-    // Periodic safety sync for accordion/tab transitions
     const interval = setInterval(scheduleGeometryUpdate, 400);
 
     return () => {
@@ -151,7 +161,7 @@ export const TourEngine: React.FC<TourEngineProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onExit();
+        handleSafeExit();
       } else if (e.key === 'ArrowRight' && !isPaused) {
         handleNext();
       } else if (e.key === 'ArrowLeft' && !isPaused) {
@@ -160,7 +170,6 @@ export const TourEngine: React.FC<TourEngineProps> = ({
         e.preventDefault();
         setIsPaused((p) => !p);
       } else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
-        // Dev toggle Ctrl+D or Cmd+D for tour debug mode
         e.preventDefault();
         setDebugMode((d) => !d);
       }
@@ -174,7 +183,7 @@ export const TourEngine: React.FC<TourEngineProps> = ({
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex((prev) => prev + 1);
     } else {
-      onExit();
+      handleSafeExit();
     }
   };
 
@@ -182,6 +191,13 @@ export const TourEngine: React.FC<TourEngineProps> = ({
     if (currentStepIndex > 0) {
       setCurrentStepIndex((prev) => prev - 1);
     }
+  };
+
+  const handleSafeExit = () => {
+    setLifecycleState('exiting');
+    setTargetGeometry(null);
+    setTargetElement(null);
+    onExit();
   };
 
   const handleDemonstration = (action: string) => {
@@ -192,11 +208,14 @@ export const TourEngine: React.FC<TourEngineProps> = ({
 
   if (!isActive || !currentStep || typeof document === 'undefined') return null;
 
-  // Render via React Portal to document.body to escape transformed container boundaries
   return createPortal(
     <>
-      {/* 1. Target Spotlight Ring (Zero global dimming, pure crisp highlight) */}
-      <TourSpotlight targetGeometry={targetGeometry} isActive={isActive} />
+      {/* 1. Target Spotlight Ring (Zero global dimming, pure crisp highlight, only active when mascot ready) */}
+      <TourSpotlight
+        targetGeometry={targetGeometry}
+        isActive={isActive}
+        isMascotReady={lifecycleState === 'ready'}
+      />
 
       {/* 2. Unified Roaming 3D Cyber Mascot with Integrated OLED Mouth Display */}
       <TourMascot
@@ -206,9 +225,10 @@ export const TourEngine: React.FC<TourEngineProps> = ({
         currentStepIndex={currentStepIndex}
         totalSteps={steps.length}
         isPaused={isPaused}
+        lifecycleState={lifecycleState}
         onNext={handleNext}
         onPrev={handlePrev}
-        onExit={onExit}
+        onExit={handleSafeExit}
         onTogglePause={() => setIsPaused(!isPaused)}
         onDemonstrate={handleDemonstration}
         debugMode={debugMode}
