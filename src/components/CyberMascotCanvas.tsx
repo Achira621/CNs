@@ -1,6 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 
-export const CyberMascotCanvas: React.FC = () => {
+interface CyberMascotCanvasProps {
+  size?: 'mini' | 'sm' | 'md' | 'lg' | 'auto';
+  scale?: number;
+  hideFloor?: boolean;
+  hideOverlays?: boolean;
+  className?: string;
+}
+
+export const CyberMascotCanvas: React.FC<CyberMascotCanvasProps> = ({
+  size = 'md',
+  scale: customScale,
+  hideFloor = false,
+  hideOverlays = false,
+  className = '',
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -10,8 +24,8 @@ export const CyberMascotCanvas: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = canvas.parentElement?.clientWidth || 500);
-    let height = (canvas.height = canvas.parentElement?.clientHeight || 450);
+    let width = (canvas.width = canvas.parentElement?.clientWidth || 300);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 300);
 
     let mouseX = 0;
     let mouseY = 0;
@@ -62,51 +76,65 @@ export const CyberMascotCanvas: React.FC = () => {
       currentRotY += (targetRotY - currentRotY) * 0.08;
 
       const centerX = width / 2;
-      const centerY = height / 2 - 20 + Math.sin(time * 1.5) * 8; // Gentle floating bobbing
+      const centerY = height / 2 - (hideFloor ? 0 : 20) + Math.sin(time * 1.5) * 8; // Gentle floating bobbing
 
-      // 1. Render Perspective Ground Grid (Matching study.fl-ex.co.kr floor grid)
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255, 62, 0, 0.18)';
-      ctx.lineWidth = 1;
-
-      const horizonY = height * 0.72;
-      const floorBottomY = height;
-      const numLines = 14;
-
-      for (let i = 0; i <= numLines; i++) {
-        const xProjTop = centerX + (i - numLines / 2) * (width / numLines) * 0.25;
-        const xProjBottom = centerX + (i - numLines / 2) * (width / numLines) * 1.8;
-        ctx.beginPath();
-        ctx.moveTo(xProjTop, horizonY);
-        ctx.lineTo(xProjBottom, floorBottomY);
-        ctx.stroke();
+      // Compute scale factor
+      let effectiveScale = customScale;
+      if (!effectiveScale) {
+        if (size === 'mini') effectiveScale = 0.45;
+        else if (size === 'sm') effectiveScale = 0.65;
+        else if (size === 'md') effectiveScale = 0.85;
+        else if (size === 'lg') effectiveScale = 1.0;
+        else effectiveScale = 0.8;
       }
 
-      // Horizontal perspective grid lines
-      for (let j = 1; j <= 8; j++) {
-        const ratio = Math.pow(j / 8, 2);
-        const y = horizonY + ratio * (floorBottomY - horizonY);
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+      // 1. Render Perspective Ground Grid (if not hidden)
+      if (!hideFloor) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 62, 0, 0.18)';
+        ctx.lineWidth = 1;
+
+        const horizonY = height * 0.72;
+        const floorBottomY = height;
+        const numLines = 14;
+
+        for (let i = 0; i <= numLines; i++) {
+          const xProjTop = centerX + (i - numLines / 2) * (width / numLines) * 0.25;
+          const xProjBottom = centerX + (i - numLines / 2) * (width / numLines) * 1.8;
+          ctx.beginPath();
+          ctx.moveTo(xProjTop, horizonY);
+          ctx.lineTo(xProjBottom, floorBottomY);
+          ctx.stroke();
+        }
+
+        // Horizontal perspective grid lines
+        for (let j = 1; j <= 8; j++) {
+          const ratio = Math.pow(j / 8, 2);
+          const y = horizonY + ratio * (floorBottomY - horizonY);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
-      ctx.restore();
 
       // 2. Render 3D Vault / Cipher Robot Body
       ctx.save();
       ctx.translate(centerX, centerY);
+      ctx.scale(effectiveScale, effectiveScale);
 
       // Shadow on floor
-      ctx.beginPath();
-      ctx.ellipse(0, height * 0.28, 90, 24, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fill();
+      if (!hideFloor) {
+        ctx.beginPath();
+        ctx.ellipse(0, height * 0.28 / effectiveScale, 90, 24, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fill();
+      }
 
       // Main Outer Frame Box with 3D tilt
       const boxW = 160;
       const boxH = 150;
-      const boxDepth = 40;
 
       // Apply 3D perspective skew
       const tiltX = currentRotY * 30;
@@ -117,8 +145,8 @@ export const CyberMascotCanvas: React.FC = () => {
 
       // Back glow fill
       const radialGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 140);
-      radialGlow.addColorStop(0, 'rgba(255, 62, 0, 0.35)');
-      radialGlow.addColorStop(0.7, 'rgba(255, 140, 0, 0.1)');
+      radialGlow.addColorStop(0, 'rgba(136, 85, 199, 0.4)');
+      radialGlow.addColorStop(0.5, 'rgba(255, 62, 0, 0.2)');
       radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = radialGlow;
       ctx.beginPath();
@@ -127,7 +155,7 @@ export const CyberMascotCanvas: React.FC = () => {
 
       // Vault Box Main Shell (Rounded Rect)
       ctx.fillStyle = '#141417';
-      ctx.strokeStyle = '#FF3E00';
+      ctx.strokeStyle = '#8855C7';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.roundRect(-boxW / 2, -boxH / 2, boxW, boxH, 24);
@@ -150,13 +178,13 @@ export const CyberMascotCanvas: React.FC = () => {
       ctx.fill();
       ctx.stroke();
 
-      // Robot Cute Glowing Eyes (Like study.fl-ex.co.kr robot mascot face >/< or OUO)
+      // Robot Cute Glowing Eyes (Like >/< or OUO cyber face)
       const eyeOffset = 26 + Math.sin(time * 2) * 2;
       const eyeY = -28;
 
       // Left Eye
-      ctx.fillStyle = '#FF9900';
-      ctx.shadowColor = '#FF3E00';
+      ctx.fillStyle = '#B58AE8';
+      ctx.shadowColor = '#8855C7';
       ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.arc(-eyeOffset, eyeY, 12, 0, Math.PI * 2);
@@ -167,7 +195,7 @@ export const CyberMascotCanvas: React.FC = () => {
       ctx.fill();
 
       // Right Eye
-      ctx.fillStyle = '#FF9900';
+      ctx.fillStyle = '#B58AE8';
       ctx.beginPath();
       ctx.arc(eyeOffset, eyeY, 12, 0, Math.PI * 2);
       ctx.fill();
@@ -208,7 +236,7 @@ export const CyberMascotCanvas: React.FC = () => {
       // Side Floating Robot Hands / Wings
       const handOffset = 95 + Math.sin(time * 2.5) * 6;
       ctx.fillStyle = '#1A1A20';
-      ctx.strokeStyle = '#FF3E00';
+      ctx.strokeStyle = '#8855C7';
       ctx.lineWidth = 2;
 
       // Left Hand
@@ -237,36 +265,37 @@ export const CyberMascotCanvas: React.FC = () => {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [size, customScale, hideFloor]);
 
   return (
-    <div className="w-full h-[360px] sm:h-[450px] relative flex items-center justify-center pointer-events-auto">
-      {/* Corner Bracket Frames (┌ ┐ └ ┘) matching study.fl-ex.co.kr template screenshot */}
-      <div className="absolute top-4 left-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
-        ┌
-      </div>
-      <div className="absolute top-4 right-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
-        ┐
-      </div>
-      <div className="absolute bottom-4 left-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
-        └
-      </div>
-      <div className="absolute bottom-4 right-6 text-zinc-400 font-mono-code text-lg font-bold select-none pointer-events-none">
-        ┘
-      </div>
-
-      {/* Progress Line Bar & -000% indicator */}
-      <div className="absolute top-10 right-10 flex items-center gap-2 font-mono-code text-xs font-bold text-[#FF3E00] z-20 pointer-events-none">
-        <div className="w-24 h-[2px] bg-[#FF3E00] shadow-[0_0_8px_#FF3E00]" />
-        <span>-000%</span>
-      </div>
-
-      {/* Monospace Subtext beneath mascot */}
-      <div className="absolute bottom-8 text-center font-mono-code text-[11px] text-zinc-300 tracking-wider z-20 pointer-events-none flex items-center gap-2">
-        <span>3D 모델링 불러오는 중.. O_O</span>
-        <span className="text-zinc-600">|</span>
-        <span className="text-[#FF3E00] font-bold">CYBER VAULT READY</span>
-      </div>
+    <div
+      className={`relative flex items-center justify-center pointer-events-auto select-none ${
+        size === 'mini'
+          ? 'w-24 h-24'
+          : size === 'sm'
+          ? 'w-48 h-48'
+          : size === 'md'
+          ? 'w-full h-[280px] sm:h-[320px]'
+          : 'w-full h-[360px] sm:h-[450px]'
+      } ${className}`}
+    >
+      {!hideOverlays && (
+        <>
+          {/* Corner Bracket Frames (┌ ┐ └ ┘) */}
+          <div className="absolute top-2 left-3 text-zinc-500 font-mono-code text-sm font-bold select-none pointer-events-none">
+            ┌
+          </div>
+          <div className="absolute top-2 right-3 text-zinc-500 font-mono-code text-sm font-bold select-none pointer-events-none">
+            ┐
+          </div>
+          <div className="absolute bottom-2 left-3 text-zinc-500 font-mono-code text-sm font-bold select-none pointer-events-none">
+            └
+          </div>
+          <div className="absolute bottom-2 right-3 text-zinc-500 font-mono-code text-sm font-bold select-none pointer-events-none">
+            ┘
+          </div>
+        </>
+      )}
 
       <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
     </div>

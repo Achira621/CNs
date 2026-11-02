@@ -20,6 +20,7 @@ import { CryptoKnowledgeGraph, GraphNode } from './components/CryptoKnowledgeGra
 import { AITutorDrawer } from './components/AITutorDrawer';
 import { PresetsModal } from './components/PresetsModal';
 import { OmnibarModal } from './components/OmnibarModal';
+import { MascotTourGuide } from './components/MascotTourGuide';
 import { CipherMethod } from './types';
 import { isCoprime } from './utils/affineMath';
 import {
@@ -62,6 +63,9 @@ export default function App() {
 
   // Presets modal state
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
+
+  // Mascot Feature Tour Guide state
+  const [isMascotTourOpen, setIsMascotTourOpen] = useState(false);
 
   // Keyboard shortcut for Cmd/Ctrl + K Omnibar
   useEffect(() => {
@@ -156,6 +160,7 @@ export default function App() {
             setAiTutorPrompt('');
             setIsAITutorOpen(true);
           }}
+          onOpenMascotTour={() => setIsMascotTourOpen(true)}
           notificationCount={1}
         />
 
@@ -463,6 +468,20 @@ export default function App() {
         isOpen={isOmnibarOpen}
         onClose={() => setIsOmnibarOpen(false)}
         onSelectNode={handleSelectGraphNode}
+      />
+
+      {/* Game-Like Interactive Cyber Mascot Tour Guide */}
+      <MascotTourGuide
+        isOpen={isMascotTourOpen}
+        onClose={() => setIsMascotTourOpen(false)}
+        onNavigate={(nav, algorithm) => {
+          if (algorithm) {
+            handleCipherMethodChange(algorithm);
+            setActiveNav('algorithm_page');
+          } else {
+            setActiveNav(nav);
+          }
+        }}
       />
     </div>
   );

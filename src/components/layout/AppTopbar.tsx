@@ -1,15 +1,17 @@
 import React from 'react';
-import { Search, Bell, Sparkles, Command } from 'lucide-react';
+import { Search, Bell, Sparkles, Command, Bot } from 'lucide-react';
 
 interface AppTopbarProps {
   onOpenSearch: () => void;
   onOpenAITutor: () => void;
+  onOpenMascotTour: () => void;
   notificationCount?: number;
 }
 
 export const AppTopbar: React.FC<AppTopbarProps> = ({
   onOpenSearch,
   onOpenAITutor,
+  onOpenMascotTour,
   notificationCount = 1,
 }) => {
   return (
@@ -63,13 +65,29 @@ export const AppTopbar: React.FC<AppTopbarProps> = ({
           )}
         </div>
 
-        {/* User Profile Avatar (Varad Dalvi) */}
-        <div
-          title="Varad Dalvi (24101B0040) · Lead Cryptographic Architect"
-          className="w-9 h-9 rounded-xl bg-[#1E1B2E] text-white font-mono-code font-bold text-xs flex items-center justify-center border border-[#3A3555] shadow-xs cursor-default select-none"
+        {/* Replaced VD button with the Cyber Mascot Bot Tour Launcher */}
+        <button
+          onClick={onOpenMascotTour}
+          title="Launch Interactive Mascot Tour: Explore Every Feature!"
+          className="group relative flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-[#13121F] hover:bg-[#1E1B2E] border-2 border-[#8855C7] hover:border-[#A855F7] text-white shadow-md hover:shadow-lg hover:shadow-[#8855C7]/30 transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
         >
-          VD
-        </div>
+          {/* Animated pulsing online ping */}
+          <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-1 -right-1 shadow-[0_0_8px_#34D399] animate-pulse" />
+
+          {/* Mini Robot Head Icon */}
+          <div className="w-6 h-6 rounded-lg bg-[#27223D] border border-[#8855C7]/60 flex items-center justify-center text-sm">
+            🤖
+          </div>
+
+          <div className="flex flex-col text-left leading-none">
+            <span className="text-[10px] font-mono-code font-extrabold text-[#C4B5FD] uppercase tracking-wider group-hover:text-white">
+              BOT TOUR
+            </span>
+            <span className="text-[9px] font-mono-code text-zinc-400 group-hover:text-[#B58AE8]">
+              Guide
+            </span>
+          </div>
+        </button>
       </div>
     </header>
   );
