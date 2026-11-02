@@ -1,500 +1,459 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
+  Play,
+  BookOpen,
+  ArrowRight,
+  Landmark,
+  Layers,
+  Box,
   ShieldCheck,
+  Clock,
+  Zap,
+  Sigma,
+  GitCommit,
+  Grid,
+  BarChart2,
   Lock,
   Calculator,
+  Crosshair,
   GraduationCap,
   Sparkles,
-  ArrowRight,
-  User,
-  Building2,
-  Award,
-  KeyRound,
-  Zap,
-  Binary,
-  Layers,
-  ChevronRight,
-  Cpu,
-  Compass,
-  LayoutGrid,
+  Globe2,
 } from 'lucide-react';
-import { CyberMascotCanvas } from './CyberMascotCanvas';
-import { CryptoKnowledgeGraph, GraphNode } from './CryptoKnowledgeGraph';
-import { CryptoOmnibar } from './CryptoOmnibar';
+import { CosmicPlanet } from './effects/CosmicPlanet';
+import { CipherMethod } from '../types';
 
 interface HeroPageProps {
-  onGetIntoApp: () => void;
-  onOpenMenu: () => void;
-  onSelectTopicNode?: (node: GraphNode) => void;
+  onOpenCipherStudio: () => void;
+  onViewCurriculum: () => void;
+  onSelectCategory: (category: string) => void;
+  onSelectAlgorithm: (method: CipherMethod) => void;
+  onOpenQuickTool: (tool: 'mod26' | 'gcd' | 'matrix' | 'freq') => void;
 }
 
-export const HeroPage: React.FC<HeroPageProps> = ({ onGetIntoApp, onOpenMenu, onSelectTopicNode }) => {
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [heroMode, setHeroMode] = useState<'graph' | 'curriculum'>('graph');
-  const [graphFilter, setGraphFilter] = useState('');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight > 0) {
-        setScrollProgress(Math.round((window.scrollY / totalHeight) * 100));
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+export const HeroPage: React.FC<HeroPageProps> = ({
+  onOpenCipherStudio,
+  onViewCurriculum,
+  onSelectCategory,
+  onSelectAlgorithm,
+  onOpenQuickTool,
+}) => {
   const teamMembers = [
     {
       name: 'Varad Dalvi',
       rollNo: '24101B0040',
       role: 'Lead Cryptographic Architect',
-      duration: 'Practical Term: 6 Months',
+      term: '6 Months',
       badge: 'Team Lead',
-      review:
-        'Architected the Monoalphabetic, Polyalphabetic, and Block Cipher execution engines. Designed interactive modular visualizers.',
+      desc: 'Architected the execution engines for Monoalphabetic, Polyalphabetic, DES/AES blocks and Cosmic Lab design system.',
     },
     {
       name: 'Omkar Bengali',
       rollNo: '24101B0043',
       role: 'Modular Math & Frequency Analyst',
-      duration: 'Practical Term: 6 Months',
+      term: '6 Months',
       badge: 'Core Developer',
-      review:
-        'Implemented the Extended Euclidean Algorithm solver, Mod 26 clock geometry, and chi-squared frequency analysis engine.',
+      desc: 'Engineered the Extended Euclidean Algorithm solver, mod 26 clock geometry, and chi-squared cryptanalysis engine.',
     },
     {
       name: 'Sumit Surwase',
       rollNo: '24101B0022',
       role: 'Security Protocols & Visualizer Dev',
-      duration: 'Practical Term: 6 Months',
+      term: '6 Months',
       badge: 'Core Developer',
-      review:
-        'Built the Block Cipher mode state diagrams (ECB, CBC, CFB, OFB, CTR) and AI Tutor context drawer integration.',
+      desc: 'Implemented block cipher chaining modes (ECB, CBC, CFB, OFB, CTR) and AI context tutor integration.',
     },
   ];
-
-  const features = [
-    {
-      icon: Lock,
-      title: 'Substitution Studio',
-      tagline: 'Mono & Polyalphabetic',
-      desc: 'Encrypt & decrypt using Caesar, Multiplicative, Affine, Vigenère, Playfair, and Hill ciphers with live key vectors.',
-      cta: 'Explore Studio',
-    },
-    {
-      icon: Cpu,
-      title: '2DES, 3DES & AES',
-      tagline: 'Modern FIPS Standards',
-      desc: 'Step-by-step 2DES cascading pipeline, MITM attack simulation, 3DES EDE mode, and 128/192/256-bit AES Rijndael state matrix.',
-      cta: 'Explore Modern Ciphers',
-    },
-    {
-      icon: Binary,
-      title: 'Block Cipher Modes',
-      tagline: 'ECB, CBC, CFB, OFB, CTR',
-      desc: 'Interactive step-by-step XOR vector chaining, IV feedback loops, and parallel counter keystream generators.',
-      cta: 'Explore Block Modes',
-    },
-    {
-      icon: Calculator,
-      title: 'Modular Mathematics',
-      tagline: 'Algebra & Geometry',
-      desc: 'Visualize Mod 26 clock geometry, coprimality heatmaps, Galois Field GF(2⁸) multipliers, and AES S-Box matrices.',
-      cta: 'Launch Math Lab',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Cryptanalysis Engine',
-      tagline: 'Brute Force, MITM & SAC',
-      desc: 'Real-time chi-squared English frequency analysis, 2DES Meet-in-the-Middle cracker, and AES Strict Avalanche Criterion.',
-      cta: 'Launch Attack Engine',
-    },
-  ];
-
-  const loadingStatuses = [
-    'Initializing block cipher matrix... OUO',
-    'Charging key vector generators... >/<',
-    'Loading modular mod 26 clock... +_+',
-    'Preparing student practical review... O_O',
-    'Verifying Vercel edge runtime... >_<',
-  ];
-
-  const quickPills = [
-    'AES-256 Rijndael',
-    'Meet-in-the-Middle',
-    'Playfair Matrix',
-    'Mod 26 Clock',
-    'Affine Cipher',
-    'CBC Chaining',
-  ];
-
-  const handleSelectNode = (node: GraphNode) => {
-    if (onSelectTopicNode) {
-      onSelectTopicNode(node);
-    } else {
-      onGetIntoApp();
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans relative overflow-x-hidden flex flex-col justify-between selection:bg-[#FF3E00] selection:text-white">
-      {/* Top Banner Status Marquee */}
-      <div className="bg-black border-b border-[#262626] py-2 overflow-hidden relative shadow-md z-30">
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-8 font-mono-code text-xs text-zinc-200">
-          {Array.from({ length: 3 }).map((_, idx) => (
-            <React.Fragment key={idx}>
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#FF3E00] animate-pulse" />
-                <span className="text-[#FF3E00] font-bold">VIDYALANKAR INSTITUTE OF TECHNOLOGY</span>
-              </span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-amber-400 font-semibold">CYBERSECURITY PRACTICAL</span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-zinc-300 font-medium">PROF. VINITA BHANDIWAD</span>
-              <span className="text-zinc-600">•</span>
-              {loadingStatuses.map((st, stIdx) => (
-                <span key={stIdx} className="text-zinc-200 font-mono-code flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">[STATUS]</span>
-                  <span>{st}</span>
-                  <span className="text-zinc-600">•</span>
+    <div className="space-y-10 pb-16 max-w-7xl mx-auto">
+      {/* ============================================================ */}
+      {/* 1. HERO SECTION (Cosmic White Canvas Composition) */}
+      {/* ============================================================ */}
+      <section className="relative pt-6 sm:pt-10 pb-4 overflow-visible">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
+          {/* Left Hero Content */}
+          <div className="space-y-6 max-w-2xl relative z-10">
+            {/* Eyebrow */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-mono-code font-extrabold tracking-[0.25em] text-zinc-800 uppercase">
+                  VIT · CYBERSECURITY LAB
                 </span>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      {/* Floating Mode Toggle (Graph Universe vs Curriculum Cards) */}
-      <div className="fixed top-14 left-1/2 -translate-x-1/2 z-40 bg-[#121218]/90 backdrop-blur-xl border border-[#2b2b3a] p-1.5 rounded-full shadow-2xl flex items-center gap-1.5">
-        <button
-          onClick={() => setHeroMode('graph')}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold transition-all ${
-            heroMode === 'graph'
-              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Compass className="w-3.5 h-3.5" />
-          <span>Knowledge Graph</span>
-        </button>
-        <button
-          onClick={() => setHeroMode('curriculum')}
-          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold transition-all ${
-            heroMode === 'curriculum'
-              ? 'bg-[#FF3E00] text-white shadow-md shadow-[#FF3E00]/30'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <LayoutGrid className="w-3.5 h-3.5" />
-          <span>Curriculum Cards</span>
-        </button>
-      </div>
-
-      {/* Side Vertical Navigation (Desktop) */}
-      <div className="hidden lg:flex fixed left-6 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-6 bg-[#141414]/90 backdrop-blur-md border border-[#262626] p-3 rounded-full shadow-xl">
-        <span className="text-[10px] font-mono-code font-bold text-[#FF3E00] -rotate-90 py-2 tracking-widest uppercase">
-          NAV
-        </span>
-        <div className="w-4 h-[1px] bg-[#262626]" />
-        <button
-          onClick={onGetIntoApp}
-          title="Enter Cipher Studio"
-          className="w-8 h-8 rounded-full bg-[#181818] hover:bg-[#FF3E00] transition-colors flex items-center justify-center text-white text-xs font-mono-code font-bold"
-        >
-          01
-        </button>
-        <button
-          onClick={onOpenMenu}
-          title="Taxonomy Menu"
-          className="w-8 h-8 rounded-full bg-[#181818] hover:bg-[#FF3E00] transition-colors flex items-center justify-center text-white text-xs font-mono-code font-bold"
-        >
-          02
-        </button>
-      </div>
-
-      {/* Right Vertical Scroll Progress Meter */}
-      {heroMode === 'curriculum' && (
-        <div className="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-3 bg-[#141414]/90 backdrop-blur-md border border-[#262626] py-4 px-2.5 rounded-full shadow-xl font-mono-code text-[11px] text-zinc-300">
-          <span className="text-[#FF3E00] font-bold">{scrollProgress}%</span>
-          <div className="w-1.5 h-20 bg-[#222222] rounded-full relative overflow-hidden">
-            <div
-              className="w-full bg-gradient-to-b from-[#FF3E00] to-amber-500 transition-all duration-150 rounded-full"
-              style={{ height: `${scrollProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* MAIN VIEW: Knowledge Graph Universe (Learn-Anything Inspired Mode) */}
-      {heroMode === 'graph' ? (
-        <div className="relative flex-1 w-full h-[calc(100vh-80px)] overflow-hidden flex flex-col justify-center items-center">
-          {/* Interactive Canvas Physics Graph in the background */}
-          <div className="absolute inset-0 z-0">
-            <CryptoKnowledgeGraph
-              onNodeSelect={handleSelectNode}
-              filterQuery={graphFilter}
-              className="w-full h-full"
-            />
-          </div>
-
-          {/* Centered Hero & Search UI Overlay (Modeled on Learn Anything) */}
-          <div className="relative z-20 w-full max-w-2xl px-4 text-center pointer-events-auto">
-            <div className="bg-[#08080C]/75 backdrop-blur-md border border-white/5 p-6 sm:p-8 rounded-3xl shadow-2xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#14141a]/90 border border-[#2c2c3d] rounded-full text-xs font-mono text-zinc-300 mb-4 shadow-xl backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Interactive Cryptographic Knowledge Graph</span>
               </div>
-
-              <h1 className="text-4xl sm:text-6xl font-serif-display font-extrabold text-white tracking-tight leading-[1.1] mb-6 drop-shadow-md">
-                I want to explore
-              </h1>
-
-              {/* Omnibar Input */}
-              <div className="mb-4">
-                <CryptoOmnibar
-                  onSelectNode={handleSelectNode}
-                  onInputChange={setGraphFilter}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Topic Suggestion Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                <span className="text-xs font-mono text-zinc-500">Quick topics:</span>
-                {quickPills.map((pill) => (
-                  <button
-                    key={pill}
-                    onClick={() => setGraphFilter(pill)}
-                    className="px-3 py-1 rounded-full text-xs font-mono bg-[#14141c]/80 hover:bg-indigo-600/20 border border-[#262638] hover:border-indigo-500/40 text-zinc-300 hover:text-white transition-all backdrop-blur-sm"
-                  >
-                    {pill}
-                  </button>
-                ))}
-              </div>
+              <div className="w-20 h-0.5 bg-gradient-to-r from-[#8855C7] to-transparent rounded-full" />
             </div>
 
-            {/* Action Bar */}
-            <div className="flex items-center justify-center gap-3 pt-6">
+            {/* Main Headline matching reference */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif-display font-medium text-zinc-950 tracking-tight leading-[1.12]">
+              Classical Cryptography{' '}
+              <span className="block font-serif-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8855C7] via-[#A855F7] to-[#6366F1]">
+                Masterclass
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-zinc-600 text-base sm:text-lg leading-relaxed font-sans max-w-xl">
+              Explore, implement, and analyze classical and modern ciphers with interactive tools, visualizations, and hands-on practice.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={onGetIntoApp}
-                className="group inline-flex items-center gap-2 px-6 py-3 bg-[#FF3E00] hover:bg-[#E03700] text-white text-xs font-mono font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-[#FF3E00]/20 transition-all hover:scale-105 active:scale-95"
+                onClick={onOpenCipherStudio}
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-gradient-to-r from-[#8855C7] to-[#7C3AED] hover:from-[#7E4ABE] hover:to-[#6D28D9] text-white text-sm font-semibold shadow-lg shadow-[#8855C7]/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
-                <KeyRound className="w-4 h-4 text-amber-200" />
-                <span>Open Full Studio</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <Play className="w-4 h-4 fill-white" />
+                <span>Open Cipher Studio</span>
               </button>
+
               <button
-                onClick={() => setHeroMode('curriculum')}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-[#14141c]/90 hover:bg-[#1f1f2e] border border-[#2c2c3d] text-zinc-300 hover:text-white text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all hover:scale-105"
+                onClick={onViewCurriculum}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-800 text-sm font-semibold shadow-xs transition-all hover:border-zinc-400 cursor-pointer"
               >
-                <span>Curriculum Review</span>
-                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                <BookOpen className="w-4 h-4 text-zinc-600" />
+                <span>View Curriculum</span>
               </button>
             </div>
           </div>
+
+          {/* Right Hero Artwork: Floating Cosmic Planet */}
+          <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 relative">
+            <CosmicPlanet size={380} lightCanvas={true} />
+          </div>
         </div>
-      ) : (
-        /* CURRICULUM MODE: Structured Course & Team Review Cards */
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 my-auto w-full">
-          {/* Top Institution Pill */}
-          <div className="flex flex-col items-center text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#141414] border border-[#262626] rounded-full text-xs font-mono-code shadow-md">
-              <Building2 className="w-4 h-4 text-[#FF3E00]" />
-              <span className="text-zinc-200 font-semibold">VIDYALANKAR INSTITUTE OF TECHNOLOGY</span>
-              <span className="text-zinc-600">|</span>
-              <span className="text-[#FF3E00] font-bold">CYBERSECURITY PRACTICAL</span>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 2. FOUR CATEGORY CARDS (High-Contrast Black Boxes) */}
+      {/* ============================================================ */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Card 1: Monoalphabetic */}
+        <div
+          onClick={() => onSelectCategory('monoalphabetic')}
+          className="group relative bg-[#13121F] hover:bg-[#181627] border border-[#24223A] hover:border-amber-500/50 rounded-2xl p-6 text-white shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/80 via-amber-400 to-transparent" />
+          <div className="space-y-4">
+            <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <Landmark className="w-5 h-5" />
             </div>
+            <div>
+              <h3 className="text-lg font-bold text-white group-hover:text-amber-200 transition-colors">
+                Monoalphabetic
+              </h3>
+              <p className="text-xs font-mono-code text-zinc-400 mt-1">
+                Caesar, Affine, Substitution
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 mt-6 border-t border-[#232135] flex items-center justify-between text-xs text-zinc-400 group-hover:text-amber-300">
+            <span>Explore 4 ciphers</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
 
-            {/* Hero Main Grid Layout (Text + Interactive 3D Mascot Canvas) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full pt-4">
-              {/* Left Content Column */}
-              <div className="lg:col-span-7 text-center lg:text-left space-y-6">
-                <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF3E00]/10 border border-[#FF3E00]/30 rounded-lg text-[11px] font-mono-code text-[#FF3E00] font-bold">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>MONO, POLY, BLOCK & MODERN STANDARDS (15 CIPHERS)</span>
-                  </div>
+        {/* Card 2: Polyalphabetic */}
+        <div
+          onClick={() => onSelectCategory('polyalphabetic')}
+          className="group relative bg-[#13121F] hover:bg-[#181627] border border-[#24223A] hover:border-purple-500/50 rounded-2xl p-6 text-white shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500/80 via-purple-400 to-transparent" />
+          <div className="space-y-4">
+            <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white group-hover:text-purple-200 transition-colors">
+                Polyalphabetic
+              </h3>
+              <p className="text-xs font-mono-code text-zinc-400 mt-1">
+                Vigenère, Playfair, Hill
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 mt-6 border-t border-[#232135] flex items-center justify-between text-xs text-zinc-400 group-hover:text-purple-300">
+            <span>Explore 3 ciphers</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
 
-                  <h1 className="text-4xl sm:text-6xl font-serif-display font-extrabold text-white tracking-tight leading-[1.1]">
-                    Classical Cryptography & <br />
-                    <span className="bg-gradient-to-r from-[#FF3E00] via-amber-500 to-emerald-400 bg-clip-text text-transparent italic">
-                      Block Cipher Studio
-                    </span>
-                  </h1>
-                </div>
+        {/* Card 3: Block Ciphers */}
+        <div
+          onClick={() => onSelectCategory('block')}
+          className="group relative bg-[#13121F] hover:bg-[#181627] border border-[#24223A] hover:border-blue-500/50 rounded-2xl p-6 text-white shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/80 via-blue-400 to-transparent" />
+          <div className="space-y-4">
+            <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Box className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white group-hover:text-blue-200 transition-colors">
+                Block Ciphers
+              </h3>
+              <p className="text-xs font-mono-code text-zinc-400 mt-1">
+                DES, 3DES, Modes (ECB, CBC)
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 mt-6 border-t border-[#232135] flex items-center justify-between text-xs text-zinc-400 group-hover:text-blue-300">
+            <span>Explore 8 ciphers</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
 
-                <p className="text-sm sm:text-base text-zinc-400 font-sans leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  Master classical ciphers (Caesar, Affine, Vigenère, Playfair, Hill), complete block modes (ECB, CBC, CFB, OFB, CTR), and modern industry standards including **Single DES, 2DES, 3DES (EDE)**, and **AES (Rijndael FIPS 197)**.
+        {/* Card 4: Modern Standards */}
+        <div
+          onClick={() => onSelectCategory('modern')}
+          className="group relative bg-[#13121F] hover:bg-[#181627] border border-[#24223A] hover:border-cyan-500/50 rounded-2xl p-6 text-white shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden flex flex-col justify-between"
+        >
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500/80 via-cyan-400 to-transparent" />
+          <div className="space-y-4">
+            <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white group-hover:text-cyan-200 transition-colors">
+                Modern Standards
+              </h3>
+              <p className="text-xs font-mono-code text-zinc-400 mt-1">
+                AES, RSA, ECC, SHA-256
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 mt-6 border-t border-[#232135] flex items-center justify-between text-xs text-zinc-400 group-hover:text-cyan-300">
+            <span>Explore 6 standards</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 3. BOTTOM ROW: CONTINUE LEARNING & QUICK TOOLS */}
+      {/* ============================================================ */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Continue Learning Card (DES) */}
+        <div className="lg:col-span-7 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
+          <div className="flex items-center gap-2 text-xs font-mono-code text-zinc-400 mb-4">
+            <Clock className="w-4 h-4 text-purple-400" />
+            <span className="uppercase tracking-wider font-semibold">Continue Learning</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-[#0F0E1B] border border-[#232035] p-4 rounded-xl">
+            <div className="flex items-center gap-4 min-w-0">
+              {/* Thumbnail */}
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#8855C7] to-[#1E1338] flex items-center justify-center text-white shrink-0 border border-[#3E3466]">
+                <Box className="w-6 h-6 text-[#C4B5FD]" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-sm text-zinc-100 truncate">
+                  DES – Data Encryption Standard
+                </h4>
+                <p className="text-xs text-zinc-400 font-mono-code mt-0.5">
+                  16-round Feistel structure & key scheduling
                 </p>
-
-                {/* Faculty Guidance Card */}
-                <div className="inline-flex items-center gap-3 px-4 py-3 bg-[#141414] border border-[#262626] rounded-2xl shadow-md font-mono-code text-xs text-zinc-300">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                    <Award className="w-5 h-5" />
+                {/* Progress Bar */}
+                <div className="flex items-center gap-3 mt-2.5">
+                  <div className="w-44 h-1.5 bg-[#25223A] rounded-full overflow-hidden">
+                    <div className="w-[72%] h-full bg-gradient-to-r from-[#8855C7] to-[#B58AE8] rounded-full" />
                   </div>
-                  <div className="text-left">
-                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest block font-bold">
-                      PRACTICAL CONDUCTED BY
-                    </span>
-                    <span className="text-white font-bold text-sm">Prof. Vinita Bhandiwad</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-                  <button
-                    onClick={onGetIntoApp}
-                    className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-[#FF3E00] hover:bg-[#E03700] text-white text-sm font-mono-code font-bold uppercase tracking-wider rounded-2xl shadow-xl shadow-[#FF3E00]/20 transition-all duration-300 hover:scale-105 active:scale-95"
-                  >
-                    <KeyRound className="w-5 h-5 text-amber-200 group-hover:text-white" />
-                    <span>Enter Cipher Studio</span>
-                    <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1.5" />
-                  </button>
-
-                  <button
-                    onClick={() => setHeroMode('graph')}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 text-sm font-mono-code font-bold uppercase tracking-wider rounded-2xl transition-all hover:scale-105 shadow-sm"
-                  >
-                    <Compass className="w-4 h-4 text-indigo-400" />
-                    <span>Knowledge Universe</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Interactive 3D Mascot Canvas Column */}
-              <div className="lg:col-span-5 relative">
-                <div className="bg-[#141414] border border-[#262626] rounded-3xl p-2 shadow-2xl relative overflow-hidden cyber-frame-border">
-                  <div className="absolute top-3 left-4 right-4 flex items-center justify-between font-mono-code text-[10px] text-zinc-500 z-10 pointer-events-none">
-                    <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      LIVE 3D VAULT
-                    </span>
-                    <span>DRAG TO TILT</span>
-                  </div>
-                  <CyberMascotCanvas />
+                  <span className="text-[11px] font-mono-code text-zinc-400 font-bold">72%</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Feature Highlights Grid */}
-          <div className="mt-16 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#262626] pb-3">
-              <h2 className="text-xs font-mono-code font-bold text-[#FF3E00] uppercase tracking-[0.2em] flex items-center gap-2">
-                <Zap className="w-4 h-4 text-[#FF3E00]" />
-                <span>INCLUDED PRACTICAL MODULES</span>
-              </h2>
-              <span className="text-xs font-mono-code text-zinc-500">15 CIPHER ALGORITHMS</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {features.map((feat, fIdx) => {
-                const Icon = feat.icon;
-                return (
-                  <div
-                    key={fIdx}
-                    onClick={onGetIntoApp}
-                    className="bg-[#141414] border border-[#262626] rounded-2xl p-5 space-y-3 hover:border-[#FF3E00]/60 transition-all duration-300 cyber-card-glow cursor-pointer group flex flex-col justify-between shadow-xl"
-                  >
-                    <div className="space-y-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-center text-[#FF3E00] group-hover:scale-110 transition-transform">
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-mono-code text-[#FF3E00] font-bold uppercase tracking-wider block">
-                          {feat.tagline}
-                        </span>
-                        <h4 className="text-base font-serif-display font-bold text-white group-hover:text-[#FF3E00] transition-colors">
-                          {feat.title}
-                        </h4>
-                      </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-                        {feat.desc}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-[#262626] flex items-center justify-between text-xs font-mono-code text-zinc-400 group-hover:text-white font-bold">
-                      <span>{feat.cta}</span>
-                      <ArrowRight className="w-4 h-4 text-[#FF3E00] transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Student Practical Portfolio Review Cards */}
-          <div className="mt-16 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#262626] pb-3">
-              <h2 className="text-xs font-mono-code font-bold text-[#FF3E00] uppercase tracking-[0.2em] flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>PROJECT DEVELOPED BY (STUDENT TEAM REVIEW)</span>
-              </h2>
-              <span className="text-xs font-mono-code text-zinc-500">VIT CYBERSECURITY DEPT</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {teamMembers.map((member, idx) => (
-                <div
-                  key={idx}
-                  className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl hover:border-[#FF3E00]/60 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between space-y-4"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-[#0A0A0A] text-white border border-[#262626] flex items-center justify-center font-mono-code font-bold shadow-sm">
-                        {member.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-serif-display font-bold text-white group-hover:text-[#FF3E00] transition-colors">
-                          {member.name}
-                        </h3>
-                        <span className="text-[11px] font-mono-code text-[#FF3E00] font-bold block">
-                          ROLL: {member.rollNo}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 text-[10px] font-mono-code font-bold uppercase tracking-wider bg-[#FF3E00]/10 text-[#FF3E00] border border-[#FF3E00]/20 rounded-full">
-                      {member.badge}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-mono-code text-zinc-500 block">
-                      {member.duration}
-                    </span>
-                    <p className="text-xs text-zinc-300 font-sans leading-relaxed bg-[#0A0A0A] p-3 rounded-xl border border-[#262626]">
-                      "{member.review}"
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button
+              onClick={() => onSelectAlgorithm('des')}
+              className="w-10 h-10 rounded-full bg-[#8855C7] hover:bg-[#7844B5] text-white flex items-center justify-center shrink-0 shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              <Play className="w-4 h-4 fill-white ml-0.5" />
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Bottom Reverse Marquee Ticker */}
-      <div className="bg-black border-t border-[#262626] py-2 overflow-hidden relative z-30">
-        <div className="animate-marquee-reverse whitespace-nowrap flex items-center gap-8 font-mono-code text-[11px] text-zinc-300">
-          {Array.from({ length: 3 }).map((_, idx) => (
-            <React.Fragment key={idx}>
-              <span className="text-amber-400 font-bold">VIDYALANKAR INSTITUTE OF TECHNOLOGY</span>
-              <span>•</span>
-              <span className="text-[#FF3E00]">CYBERSECURITY PRACTICAL</span>
-              <span>•</span>
-              <span>CONDUCTED BY PROF. VINITA BHANDIWAD</span>
-              <span>•</span>
-              <span className="text-white">VARAD DALVI (24101B0040)</span>
-              <span>|</span>
-              <span className="text-white">OMKAR BENGALI (24101B0043)</span>
-              <span>|</span>
-              <span className="text-white">SUMIT SURWASE (24101B0022)</span>
-              <span>•</span>
-            </React.Fragment>
+        {/* Quick Tools Grid */}
+        <div className="lg:col-span-5 bg-[#13121F] border border-[#24223A] rounded-2xl p-6 text-white flex flex-col justify-between shadow-md">
+          <div className="flex items-center gap-2 text-xs font-mono-code text-zinc-400 mb-4">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <span className="uppercase tracking-wider font-semibold">Quick Tools</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Tool 1: Mod 26 */}
+            <button
+              onClick={() => onOpenQuickTool('mod26')}
+              className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#1A192C] hover:bg-[#25223D] border border-[#2D2A48] hover:border-[#8855C7] transition-all cursor-pointer group"
+            >
+              <Sigma className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-mono-code text-zinc-300 font-semibold">Mod 26</span>
+            </button>
+
+            {/* Tool 2: GCD */}
+            <button
+              onClick={() => onOpenQuickTool('gcd')}
+              className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#1A192C] hover:bg-[#25223D] border border-[#2D2A48] hover:border-[#8855C7] transition-all cursor-pointer group"
+            >
+              <GitCommit className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-mono-code text-zinc-300 font-semibold">GCD</span>
+            </button>
+
+            {/* Tool 3: Matrix */}
+            <button
+              onClick={() => onOpenQuickTool('matrix')}
+              className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#1A192C] hover:bg-[#25223D] border border-[#2D2A48] hover:border-[#8855C7] transition-all cursor-pointer group"
+            >
+              <Grid className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-mono-code text-zinc-300 font-semibold">Matrix</span>
+            </button>
+
+            {/* Tool 4: Freq Analysis */}
+            <button
+              onClick={() => onOpenQuickTool('freq')}
+              className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#1A192C] hover:bg-[#25223D] border border-[#2D2A48] hover:border-[#8855C7] transition-all cursor-pointer group"
+            >
+              <BarChart2 className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-mono-code text-zinc-300 font-semibold">Freq. Anal.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 4. THE LABORATORY: ONE DESIGN SYSTEM. EVERY ALGORITHM. */}
+      {/* ============================================================ */}
+      <section className="bg-[#13121F] border border-[#24223A] rounded-3xl p-6 sm:p-10 text-white shadow-xl space-y-6">
+        <div className="space-y-2">
+          <span className="text-[11px] font-mono-code font-bold uppercase tracking-[0.2em] text-[#B58AE8]">
+            THE LABORATORY
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-serif-display font-bold text-white">
+            One design system. Every algorithm.
+          </h2>
+          <p className="text-sm text-zinc-400 max-w-2xl">
+            Consistent dark workbenches, mathematical visualizations, and algorithm-specific experiences across classical, modern, asymmetric, and hashing paradigms.
+          </p>
+        </div>
+
+        {/* 4 Laboratory Workbenches */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+          <div
+            onClick={onOpenCipherStudio}
+            className="p-5 rounded-2xl bg-[#181729] hover:bg-[#201D36] border border-[#292642] hover:border-[#8855C7] transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-mono-code text-[#B58AE8] font-bold">01 / 10</span>
+              <Lock className="w-4 h-4 text-[#C4B5FD]" />
+            </div>
+            <h4 className="font-bold text-sm text-white group-hover:text-[#EDE1FF]">
+              Cipher Studio
+            </h4>
+            <p className="text-xs text-zinc-400 mt-1 font-mono-code">
+              Interactive experiments & live key vector controls
+            </p>
+          </div>
+
+          <div
+            onClick={() => onOpenQuickTool('mod26')}
+            className="p-5 rounded-2xl bg-[#181729] hover:bg-[#201D36] border border-[#292642] hover:border-[#8855C7] transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-mono-code text-[#B58AE8] font-bold">02 / 10</span>
+              <Calculator className="w-4 h-4 text-[#C4B5FD]" />
+            </div>
+            <h4 className="font-bold text-sm text-white group-hover:text-[#EDE1FF]">
+              Math Laboratory
+            </h4>
+            <p className="text-xs text-zinc-400 mt-1 font-mono-code">
+              Mod 26, GCD, Extended Euclidean & Hill Inverses
+            </p>
+          </div>
+
+          <div
+            onClick={() => onSelectCategory('attack')}
+            className="p-5 rounded-2xl bg-[#181729] hover:bg-[#201D36] border border-[#292642] hover:border-[#8855C7] transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-mono-code text-[#B58AE8] font-bold">03 / 10</span>
+              <Crosshair className="w-4 h-4 text-[#C4B5FD]" />
+            </div>
+            <h4 className="font-bold text-sm text-white group-hover:text-[#EDE1FF]">
+              Cryptanalysis Lab
+            </h4>
+            <p className="text-xs text-zinc-400 mt-1 font-mono-code">
+              Chi-squared analysis, Kasiski & MITM attacks
+            </p>
+          </div>
+
+          <div
+            onClick={() => onSelectCategory('practicals')}
+            className="p-5 rounded-2xl bg-[#181729] hover:bg-[#201D36] border border-[#292642] hover:border-[#8855C7] transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-mono-code text-[#B58AE8] font-bold">04 / 10</span>
+              <GraduationCap className="w-4 h-4 text-[#C4B5FD]" />
+            </div>
+            <h4 className="font-bold text-sm text-white group-hover:text-[#EDE1FF]">
+              CNS Guided Practicals
+            </h4>
+            <p className="text-xs text-zinc-400 mt-1 font-mono-code">
+              VIT syllabus experiments & report generation
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 5. ACADEMIC CREDITS & ENGINEERING TEAM */}
+      {/* ============================================================ */}
+      <section className="bg-white border border-[#E4E2EE] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-5">
+          <div>
+            <span className="text-[11px] font-mono-code font-bold uppercase tracking-wider text-[#8855C7]">
+              Academic Faculty & Institution
+            </span>
+            <h3 className="text-xl font-bold text-zinc-900 mt-0.5">
+              Vidyalankar Institute of Technology (VIT)
+            </h3>
+            <p className="text-xs font-mono-code text-zinc-500 mt-0.5">
+              Subject: Cybersecurity and Network Security (CNS) · Faculty: Prof. Vinita Bhandiwad
+            </p>
+          </div>
+          <div className="px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono-code font-bold inline-flex items-center gap-1.5 self-start sm:self-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Academic Practical Term Verified</span>
+          </div>
+        </div>
+
+        {/* Team Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {teamMembers.map((member, idx) => (
+            <div
+              key={idx}
+              className="bg-[#13121F] border border-[#24223A] rounded-2xl p-5 text-white space-y-3 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#8855C7]/20 border border-[#8855C7]/30 text-[#C4B5FD] text-[10px] font-mono-code font-bold">
+                  {member.badge}
+                </span>
+                <span className="text-[11px] font-mono-code text-zinc-400">{member.term}</span>
+              </div>
+
+              <div>
+                <h4 className="text-base font-bold text-white">{member.name}</h4>
+                <p className="text-xs font-mono-code text-[#B58AE8] mt-0.5">
+                  Roll No: {member.rollNo}
+                </p>
+                <p className="text-[11px] font-mono-code text-zinc-400 mt-0.5">{member.role}</p>
+              </div>
+
+              <p className="text-xs text-zinc-400 font-mono-code leading-relaxed pt-2 border-t border-[#232135]">
+                {member.desc}
+              </p>
+            </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
