@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { CipherMethod } from '../types';
 
+export type AppEnvironmentTab = 'learn' | 'experiment' | 'attack' | 'apply' | 'studio' | 'math' | 'lessons';
+
 interface HeaderProps {
-  activeTab: 'studio' | 'math' | 'attack' | 'lessons';
-  setActiveTab: (tab: 'studio' | 'math' | 'attack' | 'lessons') => void;
+  activeTab: AppEnvironmentTab;
+  setActiveTab: (tab: AppEnvironmentTab) => void;
   cipherMethod?: CipherMethod;
   onCipherMethodChange?: (method: CipherMethod) => void;
   cursorEnabled?: boolean;
@@ -42,11 +44,18 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenOmnibar,
 }) => {
   const navItems = [
-    { id: 'studio', label: 'Cipher Studio', icon: Lock },
-    { id: 'math', label: 'Math Visualizer', icon: Calculator },
-    { id: 'attack', label: 'Cryptanalysis', icon: ShieldCheck },
-    { id: 'lessons', label: 'Guided Masterclass', icon: GraduationCap },
+    { id: 'learn' as AppEnvironmentTab, label: 'Learn', icon: GraduationCap },
+    { id: 'experiment' as AppEnvironmentTab, label: 'Experiment', icon: Lock },
+    { id: 'attack' as AppEnvironmentTab, label: 'Attack', icon: ShieldCheck },
+    { id: 'apply' as AppEnvironmentTab, label: 'Apply', icon: Calculator },
   ] as const;
+
+  const isNavActive = (id: AppEnvironmentTab) => {
+    if (activeTab === id) return true;
+    if (id === 'learn' && activeTab === 'lessons') return true;
+    if (id === 'experiment' && (activeTab === 'studio' || activeTab === 'math')) return true;
+    return false;
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-[#0A0A0E]/90 backdrop-blur-xl border-b border-[#262626] text-zinc-100 shadow-xl">
@@ -118,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
           <nav className="hidden lg:flex items-center gap-1 bg-[#141414] p-1.5 border border-[#262626] rounded-full shadow-inner">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const isActive = isNavActive(item.id);
               return (
                 <button
                   key={item.id}
@@ -213,7 +222,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="lg:hidden flex items-center justify-between gap-1 pb-3 overflow-x-auto no-scrollbar border-t border-[#262626] pt-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = isNavActive(item.id);
             return (
               <button
                 key={item.id}

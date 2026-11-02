@@ -5,7 +5,7 @@ export interface GraphNode {
   id: string;
   name: string;
   prettyName: string;
-  category: 'mono' | 'poly' | 'block' | 'modern' | 'modes' | 'math' | 'attack' | 'lessons';
+  category: 'mono' | 'poly' | 'block' | 'modern' | 'modes' | 'math' | 'attack' | 'lessons' | 'asymmetric' | 'hashing';
   categoryLabel: string;
   color: string;
   targetMethod?: CipherMethod;
@@ -286,6 +286,72 @@ export const CRYPTO_NODES: GraphNode[] = [
     mass: 14,
     x: 90,
     y: 220,
+    vx: 0,
+    vy: 0,
+  },
+
+  // Asymmetric & Hashing
+  {
+    id: 'rsa',
+    name: 'rsa',
+    prettyName: 'RSA Public-Key Cryptosystem',
+    category: 'asymmetric',
+    categoryLabel: 'Public-Key Cryptography',
+    color: '#a855f7',
+    targetMethod: 'rsa',
+    targetTab: 'studio',
+    description: 'Trapdoor one-way function based on prime factorization difficulty: C = M^e mod n.',
+    mass: 18,
+    x: 140,
+    y: -140,
+    vx: 0,
+    vy: 0,
+  },
+  {
+    id: 'diffie_hellman',
+    name: 'diffie_hellman',
+    prettyName: 'Diffie-Hellman Key Exchange',
+    category: 'asymmetric',
+    categoryLabel: 'Public-Key Cryptography',
+    color: '#c084fc',
+    targetMethod: 'diffie_hellman',
+    targetTab: 'studio',
+    description: 'Modular discrete logarithm exchange enabling shared secrets over public channels.',
+    mass: 17,
+    x: 210,
+    y: -80,
+    vx: 0,
+    vy: 0,
+  },
+  {
+    id: 'sha256',
+    name: 'sha256',
+    prettyName: 'SHA-256 Hash Algorithm',
+    category: 'hashing',
+    categoryLabel: 'Cryptographic Hashing',
+    color: '#34d399',
+    targetMethod: 'sha256',
+    targetTab: 'studio',
+    description: 'NIST standard 256-bit collision-resistant one-way compression function.',
+    mass: 16,
+    x: -120,
+    y: 190,
+    vx: 0,
+    vy: 0,
+  },
+  {
+    id: 'ecc',
+    name: 'ecc',
+    prettyName: 'Elliptic Curve Cryptography',
+    category: 'asymmetric',
+    categoryLabel: 'Public-Key Cryptography',
+    color: '#e879f9',
+    targetMethod: 'ecc',
+    targetTab: 'studio',
+    description: 'Abelian group point doubling and addition on Weierstrass curve y^2 = x^3 + ax + b.',
+    mass: 17,
+    x: 190,
+    y: -200,
     vx: 0,
     vy: 0,
   },

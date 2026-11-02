@@ -10,6 +10,9 @@ import { ShieldCheck, Search, Key, Sparkles, Check, Zap, HelpCircle, Sliders, Bi
 import { CipherMethod } from '../types';
 import { simulateMeetInTheMiddle } from '../utils/desMath';
 import { calculateAvalancheEffect } from '../utils/aesMath';
+import { VigenereCryptanalysisLab } from './VigenereCryptanalysisLab';
+import { EcbPatternLeakageLab } from './EcbPatternLeakageLab';
+import { RedTeamBlueTeamLab } from './RedTeamBlueTeamLab';
 
 interface CryptanalysisTabProps {
   cipherMethod?: CipherMethod;
@@ -41,6 +44,7 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
   const [kpC2, setKpC2] = useState('Q');
 
   const [appliedKeyMsg, setAppliedKeyMsg] = useState<string | null>(null);
+  const [attackLabSection, setAttackLabSection] = useState<'brute' | 'vigenere' | 'ecb' | 'redblue'>('brute');
 
   // 2DES Meet-in-the-Middle State
   const [mitmPlaintext, setMitmPlaintext] = useState('ABCDEFGH');
@@ -124,53 +128,86 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
           )}
         </div>
 
-        {/* Method Filter Toggle Bar */}
-        {onCipherMethodChange && (
-          <div className="mt-4 pt-3 border-t border-[#262626] flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-[10px] font-mono-code uppercase text-zinc-500 shrink-0 flex items-center gap-1">
-              <Sliders className="w-3 h-3 text-[#FF3E00]" /> Attack Scope:
-            </span>
-            {(Object.keys(CIPHER_METHODS) as CipherMethod[]).map((mKey) => {
-              const info = CIPHER_METHODS[mKey];
-              const isSelected = cipherMethod === mKey;
-              return (
-                <button
-                  key={mKey}
-                  onClick={() => onCipherMethodChange(mKey)}
-                  className={`px-3 py-1.5 text-xs font-mono-code font-bold rounded-xl whitespace-nowrap border transition-all ${
-                    isSelected
-                      ? 'bg-[#FF3E00] text-white border-[#FF3E00] shadow-md shadow-[#FF3E00]/20'
-                      : 'bg-[#0A0A0A] text-zinc-400 border-[#262626] hover:text-white hover:border-zinc-500'
-                  }`}
-                >
-                  {info.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Input Text box for Cryptanalysis */}
-        <div className="mt-5 space-y-2">
-          <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-300 flex items-center justify-between">
-            <span>Target Ciphertext to Analyze</span>
+        {/* Attack Environment Sub-Tabs */}
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-[#262626] font-mono-code text-xs">
+          {[
+            { id: 'brute', label: '1. Classical & Brute Force' },
+            { id: 'vigenere', label: '2. Vigenère & Kasiski' },
+            { id: 'ecb', label: '3. ECB Pattern Leakage' },
+            { id: 'redblue', label: '4. Red vs Blue Team' },
+          ].map((tab) => (
             <button
-              onClick={() => setCipherInput('IOLT BWWXGU ROBUGT L BWWX')}
-              className="text-[#FF3E00] hover:underline text-xs normal-case font-semibold"
+              key={tab.id}
+              onClick={() => setAttackLabSection(tab.id as any)}
+              className={`px-4 py-2 rounded-xl font-bold transition-all ${
+                attackLabSection === tab.id
+                  ? 'bg-[#FF3E00] text-white shadow-md shadow-[#FF3E00]/25'
+                  : 'bg-[#0E0E14] text-zinc-400 hover:text-white hover:bg-zinc-800'
+              }`}
             >
-              Load Sample Secret
+              {tab.label}
             </button>
-          </label>
-          <textarea
-            value={cipherInput}
-            onChange={(e) => setCipherInput(e.target.value)}
-            placeholder="ENTER CIPHERTEXT TO BREAK..."
-            className="w-full h-24 bg-[#0A0A0A] font-mono-code text-sm text-[#FF3E00] p-4 border border-[#262626] focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
-          />
+          ))}
         </div>
+
+        {/* Brute Force Header Controls - only when in brute tab */}
+        {attackLabSection === 'brute' && (
+          <>
+            {/* Method Filter Toggle Bar */}
+            {onCipherMethodChange && (
+              <div className="mt-4 pt-3 border-t border-[#262626] flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-mono-code uppercase text-zinc-500 shrink-0 flex items-center gap-1">
+                  <Sliders className="w-3 h-3 text-[#FF3E00]" /> Attack Scope:
+                </span>
+                {(Object.keys(CIPHER_METHODS) as CipherMethod[]).map((mKey) => {
+                  const info = CIPHER_METHODS[mKey];
+                  const isSelected = cipherMethod === mKey;
+                  return (
+                    <button
+                      key={mKey}
+                      onClick={() => onCipherMethodChange(mKey)}
+                      className={`px-3 py-1.5 text-xs font-mono-code font-bold rounded-xl whitespace-nowrap border transition-all ${
+                        isSelected
+                          ? 'bg-[#FF3E00] text-white border-[#FF3E00] shadow-md shadow-[#FF3E00]/20'
+                          : 'bg-[#0A0A0A] text-zinc-400 border-[#262626] hover:text-white hover:border-zinc-500'
+                      }`}
+                    >
+                      {info.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Input Text box for Cryptanalysis */}
+            <div className="mt-5 space-y-2">
+              <label className="text-xs font-mono-code uppercase tracking-wider font-bold text-zinc-300 flex items-center justify-between">
+                <span>Target Ciphertext to Analyze</span>
+                <button
+                  onClick={() => setCipherInput('IOLT BWWXGU ROBUGT L BWWX')}
+                  className="text-[#FF3E00] hover:underline text-xs normal-case font-semibold"
+                >
+                  Load Sample Secret
+                </button>
+              </label>
+              <textarea
+                value={cipherInput}
+                onChange={(e) => setCipherInput(e.target.value)}
+                placeholder="ENTER CIPHERTEXT TO BREAK..."
+                className="w-full h-24 bg-[#0A0A0A] font-mono-code text-sm text-[#FF3E00] p-4 border border-[#262626] focus:border-[#FF3E00] rounded-2xl outline-none resize-none transition-all"
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Grid: Brute Force Scanner & Known-Plaintext Solver */}
+      {attackLabSection === 'vigenere' && <VigenereCryptanalysisLab />}
+      {attackLabSection === 'ecb' && <EcbPatternLeakageLab />}
+      {attackLabSection === 'redblue' && <RedTeamBlueTeamLab />}
+
+      {attackLabSection === 'brute' && (
+        <>
+          {/* Grid: Brute Force Scanner & Known-Plaintext Solver */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SECTION 1: Brute-Force Scanner (Top Candidates) */}
         <div className="bg-[#141414] border border-[#262626] rounded-3xl p-6 shadow-xl flex flex-col space-y-4">
@@ -629,7 +666,9 @@ export const CryptanalysisTab: React.FC<CryptanalysisTabProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 };
 

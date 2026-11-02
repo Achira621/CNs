@@ -1,23 +1,48 @@
 import React, { useState } from 'react';
-import { Header } from './components/Header';
+import { Header, AppEnvironmentTab } from './components/Header';
 import { HeroPage } from './components/HeroPage';
 import { MethodSelectionMenu } from './components/MethodSelectionMenu';
 import { EncoderDecoderTab } from './components/EncoderDecoderTab';
 import { MathVisualizerTab } from './components/MathVisualizerTab';
 import { CryptanalysisTab } from './components/CryptanalysisTab';
 import { MasterclassLessonsTab } from './components/MasterclassLessonsTab';
+import { AsymmetricHashStudio } from './components/AsymmetricHashStudio';
+import { FileEncryptionLab } from './components/FileEncryptionLab';
+import { SecurityComparisonEngine } from './components/SecurityComparisonEngine';
+import { RealWorldScenarios } from './components/RealWorldScenarios';
+import { GuidedPracticalsTab } from './components/GuidedPracticalsTab';
+import { ChallengeArena } from './components/ChallengeArena';
+import { LearningDashboard } from './components/LearningDashboard';
+import { CryptoKnowledgeGraph, GraphNode } from './components/CryptoKnowledgeGraph';
 import { AITutorDrawer } from './components/AITutorDrawer';
 import { PresetsModal } from './components/PresetsModal';
 import { KeyCursor } from './components/KeyCursor';
 import { FluidBackgroundCanvas } from './components/FluidBackgroundCanvas';
 import { OmnibarModal } from './components/OmnibarModal';
-import { GraphNode } from './components/CryptoKnowledgeGraph';
 import { CipherMethod } from './types';
 import { CIPHER_METHODS, isCoprime } from './utils/affineMath';
+import {
+  Lock,
+  Calculator,
+  ShieldCheck,
+  GraduationCap,
+  KeyRound,
+  FileCheck2,
+  Scale,
+  Globe2,
+  Trophy,
+  TrendingUp,
+  GitFork,
+  BookOpen,
+} from 'lucide-react';
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'hero' | 'menu' | 'app'>('hero');
-  const [activeTab, setActiveTab] = useState<'studio' | 'math' | 'attack' | 'lessons'>('studio');
+  const [activeEnv, setActiveEnv] = useState<'learn' | 'experiment' | 'attack' | 'apply'>('experiment');
+  const [experimentSubTab, setExperimentSubTab] = useState<'studio' | 'asymmetric' | 'file' | 'compare' | 'math'>('studio');
+  const [learnSubTab, setLearnSubTab] = useState<'lessons' | 'graph'>('lessons');
+  const [applySubTab, setApplySubTab] = useState<'practicals' | 'scenarios' | 'challenges' | 'dashboard'>('practicals');
+
   const [cipherMethod, setCipherMethod] = useState<CipherMethod>('affine');
   const [keyA, setKeyA] = useState<number>(5);
   const [keyB, setKeyB] = useState<number>(8);
@@ -88,9 +113,33 @@ export default function App() {
       handleCipherMethodChange(node.targetMethod);
     }
     if (node.targetTab) {
-      setActiveTab(node.targetTab);
+      if (node.targetTab === 'studio' || node.targetTab === 'math') {
+        setActiveEnv('experiment');
+        setExperimentSubTab(node.targetTab);
+      } else if (node.targetTab === 'attack') {
+        setActiveEnv('attack');
+      } else if (node.targetTab === 'lessons') {
+        setActiveEnv('learn');
+        setLearnSubTab('lessons');
+      }
     }
     setViewMode('app');
+  };
+
+  const handleNavTabChange = (tab: AppEnvironmentTab) => {
+    if (tab === 'learn' || tab === 'lessons') {
+      setActiveEnv('learn');
+    } else if (tab === 'experiment' || tab === 'studio') {
+      setActiveEnv('experiment');
+      setExperimentSubTab('studio');
+    } else if (tab === 'math') {
+      setActiveEnv('experiment');
+      setExperimentSubTab('math');
+    } else if (tab === 'attack') {
+      setActiveEnv('attack');
+    } else if (tab === 'apply') {
+      setActiveEnv('apply');
+    }
   };
 
   // If viewMode is 'hero', show Hero Landing Page
@@ -99,7 +148,7 @@ export default function App() {
       <div className="min-h-screen bg-[#08080C] text-zinc-100 font-sans selection:bg-[#FF3E00] selection:text-white relative">
         <KeyCursor enabled={cursorEnabled} />
         <HeroPage
-          onGetIntoApp={() => setViewMode('menu')}
+          onGetIntoApp={() => setViewMode('app')}
           onOpenMenu={() => setViewMode('menu')}
           onSelectTopicNode={handleSelectGraphNode}
         />
@@ -119,8 +168,8 @@ export default function App() {
         <FluidBackgroundCanvas />
         <KeyCursor enabled={cursorEnabled} />
         <Header
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          activeTab={activeEnv}
+          setActiveTab={handleNavTabChange}
           cipherMethod={cipherMethod}
           onCipherMethodChange={handleCipherMethodChange}
           cursorEnabled={cursorEnabled}
@@ -157,8 +206,8 @@ export default function App() {
 
       {/* Top Header & Navigation */}
       <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        activeTab={activeEnv}
+        setActiveTab={handleNavTabChange}
         cipherMethod={cipherMethod}
         onCipherMethodChange={handleCipherMethodChange}
         cursorEnabled={cursorEnabled}
@@ -174,46 +223,143 @@ export default function App() {
       />
 
       {/* Main Content Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
-        {activeTab === 'studio' && (
-          <EncoderDecoderTab
-            cipherMethod={cipherMethod}
-            onCipherMethodChange={handleCipherMethodChange}
-            keyA={keyA}
-            setKeyA={setKeyA}
-            keyB={keyB}
-            setKeyB={setKeyB}
-            vigenereKey={vigenereKey}
-            setVigenereKey={setVigenereKey}
-            playfairKey={playfairKey}
-            setPlayfairKey={setPlayfairKey}
-            hillMatrix={hillMatrix}
-            setHillMatrix={setHillMatrix}
-            inputText={inputText}
-            setInputText={setInputText}
-            onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
-          />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10 space-y-6">
+        {/* ============================================================ */}
+        {/* 1. LEARN ENVIRONMENT */}
+        {/* ============================================================ */}
+        {activeEnv === 'learn' && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#121218] border border-[#262626] rounded-2xl p-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLearnSubTab('lessons')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono-code font-bold transition-all ${
+                    learnSubTab === 'lessons'
+                      ? 'bg-[#FF3E00] text-white shadow-md'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Masterclass Lessons & Quizzes</span>
+                </button>
+
+                <button
+                  onClick={() => setLearnSubTab('graph')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono-code font-bold transition-all ${
+                    learnSubTab === 'graph'
+                      ? 'bg-[#FF3E00] text-white shadow-md'
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                  }`}
+                >
+                  <GitFork className="w-3.5 h-3.5" />
+                  <span>Interactive Knowledge Graph</span>
+                </button>
+              </div>
+            </div>
+
+            {learnSubTab === 'lessons' ? (
+              <MasterclassLessonsTab
+                onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
+                onSelectCipherMethod={handleCipherMethodChange}
+                onNavigateTab={(tab: any) => handleNavTabChange(tab)}
+              />
+            ) : (
+              <div className="bg-[#101016] border border-[#262626] rounded-2xl p-6 shadow-xl">
+                <CryptoKnowledgeGraph onSelectNode={handleSelectGraphNode} />
+              </div>
+            )}
+          </div>
         )}
 
-        {activeTab === 'math' && (
-          <MathVisualizerTab
-            cipherMethod={cipherMethod}
-            onCipherMethodChange={handleCipherMethodChange}
-            keyA={keyA}
-            setKeyA={setKeyA}
-            keyB={keyB}
-            setKeyB={setKeyB}
-            vigenereKey={vigenereKey}
-            setVigenereKey={setVigenereKey}
-            playfairKey={playfairKey}
-            setPlayfairKey={setPlayfairKey}
-            hillMatrix={hillMatrix}
-            setHillMatrix={setHillMatrix}
-            onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
-          />
+        {/* ============================================================ */}
+        {/* 2. EXPERIMENT ENVIRONMENT */}
+        {/* ============================================================ */}
+        {activeEnv === 'experiment' && (
+          <div className="space-y-6">
+            {/* Sub-Environment Switcher */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#121218] border border-[#262626] rounded-2xl p-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: 'studio', label: 'Cipher Studio & Trace Lab', icon: Lock },
+                  { id: 'asymmetric', label: 'Asymmetric & Hash (RSA/DH/SHA/ECC)', icon: KeyRound },
+                  { id: 'file', label: 'File Encryption (AES-GCM)', icon: FileCheck2 },
+                  { id: 'compare', label: 'Security Comparison Engine', icon: Scale },
+                  { id: 'math', label: 'Math Visualizer', icon: Calculator },
+                ].map((st) => {
+                  const Icon = st.icon;
+                  const isActive = experimentSubTab === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      onClick={() => setExperimentSubTab(st.id as any)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono-code font-bold transition-all ${
+                        isActive
+                          ? 'bg-[#FF3E00] text-white shadow-md shadow-[#FF3E00]/25'
+                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{st.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {experimentSubTab === 'studio' && (
+              <EncoderDecoderTab
+                cipherMethod={cipherMethod}
+                onCipherMethodChange={handleCipherMethodChange}
+                keyA={keyA}
+                setKeyA={setKeyA}
+                keyB={keyB}
+                setKeyB={setKeyB}
+                vigenereKey={vigenereKey}
+                setVigenereKey={setVigenereKey}
+                playfairKey={playfairKey}
+                setPlayfairKey={setPlayfairKey}
+                hillMatrix={hillMatrix}
+                setHillMatrix={setHillMatrix}
+                inputText={inputText}
+                setInputText={setInputText}
+                onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
+              />
+            )}
+
+            {experimentSubTab === 'asymmetric' && (
+              <AsymmetricHashStudio
+                onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
+              />
+            )}
+
+            {experimentSubTab === 'file' && <FileEncryptionLab />}
+
+            {experimentSubTab === 'compare' && <SecurityComparisonEngine />}
+
+            {experimentSubTab === 'math' && (
+              <MathVisualizerTab
+                cipherMethod={cipherMethod}
+                onCipherMethodChange={handleCipherMethodChange}
+                keyA={keyA}
+                setKeyA={setKeyA}
+                keyB={keyB}
+                setKeyB={setKeyB}
+                vigenereKey={vigenereKey}
+                setVigenereKey={setVigenereKey}
+                playfairKey={playfairKey}
+                setPlayfairKey={setPlayfairKey}
+                hillMatrix={hillMatrix}
+                setHillMatrix={setHillMatrix}
+                onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
+              />
+            )}
+          </div>
         )}
 
-        {activeTab === 'attack' && (
+        {/* ============================================================ */}
+        {/* 3. ATTACK ENVIRONMENT */}
+        {/* ============================================================ */}
+        {activeEnv === 'attack' && (
           <CryptanalysisTab
             cipherMethod={cipherMethod}
             onCipherMethodChange={handleCipherMethodChange}
@@ -225,12 +371,49 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'lessons' && (
-          <MasterclassLessonsTab
-            onOpenAITutorWithPrompt={handleOpenAITutorWithPrompt}
-            onSelectCipherMethod={handleCipherMethodChange}
-            onNavigateTab={setActiveTab}
-          />
+        {/* ============================================================ */}
+        {/* 4. APPLY ENVIRONMENT */}
+        {/* ============================================================ */}
+        {activeEnv === 'apply' && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#121218] border border-[#262626] rounded-2xl p-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: 'practicals', label: 'Guided CNS Practicals & Report Generator', icon: GraduationCap },
+                  { id: 'scenarios', label: 'Real-World Scenarios Simulator', icon: Globe2 },
+                  { id: 'challenges', label: 'Cryptography Challenge Arena', icon: Trophy },
+                  { id: 'dashboard', label: 'Learning Dashboard', icon: TrendingUp },
+                ].map((st) => {
+                  const Icon = st.icon;
+                  const isActive = applySubTab === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      onClick={() => setApplySubTab(st.id as any)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono-code font-bold transition-all ${
+                        isActive
+                          ? 'bg-[#FF3E00] text-white shadow-md shadow-[#FF3E00]/25'
+                          : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{st.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {applySubTab === 'practicals' && <GuidedPracticalsTab />}
+            {applySubTab === 'scenarios' && <RealWorldScenarios />}
+            {applySubTab === 'challenges' && <ChallengeArena />}
+            {applySubTab === 'dashboard' && (
+              <LearningDashboard
+                onNavigateTab={(tab) => handleNavTabChange(tab)}
+                onSelectMethod={handleCipherMethodChange}
+              />
+            )}
+          </div>
         )}
       </main>
 
@@ -261,11 +444,17 @@ export default function App() {
         onClose={() => setIsAITutorOpen(false)}
         initialPrompt={aiTutorPrompt}
         contextData={{
+          activeEnv,
+          experimentSubTab,
+          learnSubTab,
+          applySubTab,
           cipherMethod,
           keyA,
           keyB,
+          vigenereKey,
+          playfairKey,
+          hillMatrix,
           inputText,
-          activeTab,
         }}
       />
 
@@ -285,4 +474,3 @@ export default function App() {
     </div>
   );
 }
-

@@ -33,6 +33,9 @@ import {
 import { processAes, AesTextResult } from '../utils/aesMath';
 import { TwoDesThreeDesStudio } from './TwoDesThreeDesStudio';
 import { AesStudio } from './AesStudio';
+import { InteractiveTracePlayer } from './InteractiveTracePlayer';
+import { generateAlgorithmTrace } from '../utils/tracingEngine';
+import { AlgorithmStep, AlgorithmTrace } from '../types';
 import {
   ArrowRightLeft,
   Copy,
@@ -169,6 +172,49 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
     }
     return null;
   }, [cipherMethod, inputText, aesKey, aesKeyBits, mode]);
+
+  // Unified Algorithm Execution Trace
+  const activeTrace = useMemo(() => {
+    return generateAlgorithmTrace({
+      method: (cipherMethod || 'affine') as CipherMethod,
+      operation: mode,
+      text: inputText,
+      keyA,
+      keyB,
+      vigenereKey,
+      playfairKey,
+      hillMatrix,
+      blockKey,
+      blockIv,
+      desKey,
+      desKey2: twoDesKey2,
+      desKey3: threeDesKey3,
+      aesKey,
+    });
+  }, [
+    cipherMethod,
+    mode,
+    inputText,
+    keyA,
+    keyB,
+    vigenereKey,
+    playfairKey,
+    hillMatrix,
+    blockKey,
+    blockIv,
+    desKey,
+    twoDesKey2,
+    threeDesKey3,
+    aesKey,
+  ]);
+
+  const handleAskAITutorAboutStep = (step: AlgorithmStep, tr: AlgorithmTrace) => {
+    if (onOpenAITutorWithPrompt) {
+      onOpenAITutorWithPrompt(
+        `I am exploring ${tr.algorithmName} (${tr.operation.toUpperCase()}). Can you explain step #${step.index + 1}: "${step.title}"?\nDetails: ${step.description}\nMath: ${step.mathematicalExplanation}`
+      );
+    }
+  };
 
   // Compute output text dynamically
   const outputText = useMemo(() => {
@@ -1042,6 +1088,14 @@ export const EncoderDecoderTab: React.FC<EncoderDecoderTabProps> = ({
             </table>
           </div>
         </div>
+      )}
+
+      {/* Interactive Execution Trace Player */}
+      {inputText.length > 0 && activeTrace.steps.length > 0 && (
+        <InteractiveTracePlayer
+          trace={activeTrace}
+          onAskAITutorAboutStep={handleAskAITutorAboutStep}
+        />
       )}
 
       {/* Step-by-Step Character Calculation Pipeline Vector */}
